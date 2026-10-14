@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Каталог товаров — Паракли</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* ===== ПУТИ К КАРТИНКАМ — поменяйте на свои ===== */
+    --img-bg: url('Фото/Фон\ главного\ экрана.png');   /* общий фон (тот же, что на главном экране) */
+    /* Логотип задаётся в HTML ниже, фото товаров — в файле products.json */
+
+    --ink: #1c1510;
+    --muted: #8a7a68;
+    --gold: #b98a52;
+    --gold-dark: #8c6330;
+    --serif: "Cormorant Garamond", "Times New Roman", serif;
+    --sans: "Jost", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: calc(env(safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; min-height: 100dvh;
+    font-family: var(--sans); color: var(--ink);
+    background-color: #f1e4cf;
+    background-image: var(--img-bg);
+    background-size: cover; background-position: center top;
+    background-repeat: no-repeat; background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
+  button:focus-visible, a:focus-visible { outline: 3px solid rgba(185,138,82,.55); outline-offset: 2px; }
+
+  .screen {
+    position: relative; max-width: 480px; margin: 0 auto;
+    padding: calc(var(--safe-t) + 12px) 12px calc(var(--safe-b) + 24px);
+  }
+
+  .back {
+    position: absolute; top: calc(var(--safe-t) + 12px); left: 12px; z-index: 2;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: rgba(255,251,244,.8);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    box-shadow: 0 3px 10px rgba(120,88,40,.12), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+  .back svg { width: 22px; height: 22px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .logo { display: flex; justify-content: center; margin: 0 0 6px; }
+  .logo img { display: block; width: 100%; max-width: 170px; height: auto; }
+
+  h1 {
+    margin: 4px 0 14px; text-align: center;
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(30px, 9vw, 38px); line-height: 1.1;
+  }
+
+  .list { display: flex; flex-direction: column; gap: 12px; }
+
+  .product {
+    display: flex; gap: 14px; padding: 6px 14px 6px 6px;
+    border-radius: 22px;
+    background: rgba(255,251,244,.72);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 6px 16px rgba(120,88,40,.10), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+  .product .pic {
+    flex: none; width: clamp(110px, 38%, 170px); align-self: stretch; min-height: 150px;
+    border-radius: 18px; overflow: hidden; background: rgba(255,250,240,.5);
+  }
+  .product .pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .product .info { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 8px 0 6px; }
+  .product .name { margin: 0; font-family: var(--serif); font-weight: 600; font-size: clamp(22px, 6.4vw, 27px); line-height: 1.05; }
+  .product .desc { margin: 4px 0 0; font-size: 12.5px; line-height: 1.3; color: var(--muted); }
+  .product .price { margin: 8px 0 8px; font-family: var(--serif); font-weight: 600; font-size: clamp(22px, 6.4vw, 27px); color: var(--gold-dark); }
+
+  .buy {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; height: 44px; border-radius: 22px;
+    color: #fff; font-size: 17px; letter-spacing: .01em;
+    background: linear-gradient(180deg, #bf9159, #96683a);
+    box-shadow: 0 6px 14px rgba(140,99,48,.30), inset 0 1px 0 rgba(255,255,255,.35);
+    transition: transform .1s;
+  }
+  .buy:active { transform: scale(.985); }
+  .buy.idle { cursor: default; }
+  .buy.idle:active { transform: none; }
+  .buy svg, .wb svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .wb {
+    margin-top: 9px; display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 12px; color: var(--muted);
+  }
+
+  .more {
+    display: flex; align-items: center; gap: 14px; margin-top: 12px;
+    padding: 14px 16px; border-radius: 22px;
+    background: rgba(255,251,244,.72);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 6px 16px rgba(120,88,40,.08), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+  .more .leaf { flex: none; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: rgba(232,214,184,.6); }
+  .more .leaf svg { width: 24px; height: 24px; fill: none; stroke: var(--gold-dark); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .more .sep { flex: none; width: 1px; align-self: stretch; background: rgba(140,99,48,.25); }
+  .more p { margin: 0; font-family: var(--serif); font-weight: 500; font-size: clamp(17px, 4.8vw, 20px); line-height: 1.2; }
+
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<main class="screen">
+  <button class="back" id="back" type="button" aria-label="Назад">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+  </button>
+
+  <!-- Логотип: поменяйте путь на свой -->
+  <div class="logo"><img src="Фото/Лого с текстом.png" alt="Паракли"></div>
+
+  <h1>Каталог товаров</h1>
+
+  <div class="list" id="list"></div>
+
+  <div class="more">
+    <span class="leaf"><svg viewBox="0 0 24 24"><path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14"/><path d="M5 19c3-4 6-7 10-9"/></svg></span>
+    <span class="sep"></span>
+    <p>Скоро здесь появится ещё больше товаров.</p>
+  </div>
+</main>
+
+
+<script>
+(function () {
+  var PRODUCTS_URL = 'products.json';   // список товаров: название, описание, цена, фото, ссылка
+  var MAIN_PAGE = 'main.html';
+
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f1e4cf'); tg.setBackgroundColor('#f1e4cf'); } catch (e) {} }
+
+  // Без прохождения регистрации — на экран регистрации
+  var ok = false;
+  try { ok = sessionStorage.getItem('parakli_verified') === '1'; } catch (e) {}
+  if (!ok) { location.replace('index.html' + location.search); return; }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var NS = 'http://www.w3.org/2000/svg';
+
+  /* Назад */
+  function goBack() { location.href = MAIN_PAGE + location.search; }
+  $('back').addEventListener('click', goBack);
+  if (tg && tg.BackButton) { try { tg.BackButton.show(); tg.BackButton.onClick(goBack); } catch (e) {} }
+
+  /* Переход на маркетплейс — только если у товара задана ссылка (поле url в products.json) */
+  function openProduct(url) {
+    if (tg && tg.openLink) tg.openLink(url);
+    else window.open(url, '_blank', 'noopener');
+  }
+
+  function extIcon() {
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    var p = document.createElementNS(NS, 'path');
+    p.setAttribute('d', 'M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5');
+    svg.appendChild(p);
+    return svg;
+  }
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function renderProduct(p) {
+    var card = el('article', 'product');
+
+    var pic = el('div', 'pic');
+    if (p.image) { var img = el('img'); img.src = p.image; img.alt = p.name; img.loading = 'lazy';
+      img.onerror = function () { console.warn('Не найден файл изображения:', p.image); img.style.visibility = 'hidden'; };
+      pic.appendChild(img); }
+    card.appendChild(pic);
+
+    var info = el('div', 'info');
+    info.appendChild(el('h3', 'name', p.name));
+    if (p.description) info.appendChild(el('p', 'desc', p.description));
+    info.appendChild(el('div', 'price', Number(p.price).toLocaleString('ru-RU') + ' ₽'));
+
+    var hasUrl = typeof p.url === 'string' && p.url.trim() !== '';
+
+    // Кнопка «Купить»: пока ссылки нет — только внешний вид, без действия
+    var buy = el('button', 'buy'); buy.type = 'button';
+    buy.appendChild(document.createTextNode('Купить')); buy.appendChild(extIcon());
+    if (hasUrl) buy.addEventListener('click', function () { openProduct(p.url); });
+    else buy.classList.add('idle');
+    info.appendChild(buy);
+
+    // Подпись под кнопкой: без ссылки — обычный текст, не кнопка
+    var wb = el(hasUrl ? 'button' : 'span', 'wb');
+    if (hasUrl) { wb.type = 'button'; wb.addEventListener('click', function () { openProduct(p.url); }); }
+    wb.appendChild(document.createTextNode('Перейти на Wildberries')); wb.appendChild(extIcon());
+    info.appendChild(wb);
+
+    card.appendChild(info);
+    return card;
+  }
+
+  fetch(PRODUCTS_URL, { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+    .then(function (data) {
+      if (!Array.isArray(data)) throw new Error('format');
+      data.filter(function (p) { return p && typeof p.name === 'string' && p.name.trim() && isFinite(Number(p.price)); })
+          .forEach(function (p) { $('list').appendChild(renderProduct(p)); });
+    })
+    .catch(function (e) { console.warn('Товары не загружены:', e); });
+})();
+</script>
+</body>
+</html>
