@@ -266,12 +266,12 @@
       if (showErrors) wrap.classList.toggle('invalid', !valid);
       else if (valid) wrap.classList.remove('invalid');
     });
-    var checks = $('consent').checked && $('offer').checked;
+    var checks = $('consent').checked && $('offer').checked && $('ads').checked;
     btn.disabled = !(ok && checks);
     return ok && checks;
   }
  
-  fields.concat(['consent', 'offer']).forEach(function (id) {
+  fields.concat(['consent', 'offer', 'ads']).forEach(function (id) {
     $(id).addEventListener('input', function () { validate(false); });
     $(id).addEventListener('change', function () { validate(false); });
   });
