@@ -296,6 +296,14 @@
     $(id).addEventListener('click', function () { openDialog('Извините, этот раздел пока в разработке'); });
   });
 
+  document.querySelectorAll('[data-route]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      var url = ROUTES[el.getAttribute('data-route')];
+      if (url) { location.href = url + location.search; }
+      else { openDialog('Этот раздел скоро появится'); }
+    });
+  });
+
   /* ---------- Цитата дня (по московской дате) ---------- */
   var clockOffset = 0;   // разница «серверное время − часы устройства»
   var quotes = [];
