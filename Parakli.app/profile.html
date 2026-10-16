@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Профиль — Паракли</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* ===== ПУТИ К КАРТИНКАМ — поменяйте на свои ===== */
+    --img-bg:    url('images/profile-bg.jpg');          /* общий фон страницы профиля */
+    --img-stats: url('images/profile-stats-bg.jpg');    /* фон карточки статистики    */
+    /* Пять аватарок задаются в скрипте ниже, в массиве AVATARS */
+
+    --ink: #1c1510;
+    --muted: #8a7a68;
+    --gold: #b98a52;
+    --gold-dark: #8c6330;
+    --serif: "Cormorant Garamond", "Times New Roman", serif;
+    --sans: "Jost", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --nav-h: 66px;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: calc(env(safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; min-height: 100dvh;
+    font-family: var(--sans); color: var(--ink);
+    background-color: #f1e4cf;
+    background-image: var(--img-bg);
+    background-size: cover; background-position: center top;
+    background-repeat: no-repeat; background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; text-align: left; }
+  button:focus-visible { outline: 3px solid rgba(185,138,82,.55); outline-offset: 2px; }
+
+  .screen {
+    max-width: 480px; margin: 0 auto;
+    padding: calc(var(--safe-t) + 10px) 14px calc(var(--nav-h) + var(--safe-b) + 20px);
+  }
+
+  h1 {
+    margin: 0 0 14px;
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(46px, 14vw, 62px); line-height: 1.05; letter-spacing: -.01em;
+  }
+
+  .glass {
+    background: rgba(255,251,244,.74);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 6px 16px rgba(120,88,40,.10), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+
+  /* Карточка пользователя */
+  .user { display: flex; align-items: center; gap: 18px; padding: 16px 18px; border-radius: 24px; }
+  .avatar { position: relative; flex: none; width: clamp(84px, 27vw, 108px); aspect-ratio: 1; }
+  .avatar .pic { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: rgba(232,214,184,.7); box-shadow: 0 0 0 2px rgba(255,255,255,.7); }
+  .avatar .pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .avatar .edit {
+    position: absolute; right: -2px; bottom: 0; width: 34px; height: 34px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: linear-gradient(160deg, #b98a52, #8c6330);
+    box-shadow: 0 0 0 3px #fbf5ea, 0 3px 8px rgba(140,99,48,.35);
+    cursor: default;
+  }
+  .avatar .edit svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .user .name {
+    flex: 1; min-width: 0; margin: 0;
+    font-family: var(--serif); font-weight: 500; font-size: clamp(22px, 6.4vw, 27px); line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+
+  /* Карточка статистики */
+  .stats {
+    position: relative; margin-top: 14px; padding: 22px 20px 20px;
+    border-radius: 24px; overflow: hidden;
+    background: var(--img-stats) center / cover no-repeat, rgba(255,250,240,.5);
+    box-shadow: 0 6px 16px rgba(120,88,40,.10), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+  .stats .lead { margin: 0; max-width: 80%; font-family: var(--serif); font-weight: 500; font-size: clamp(18px, 5.2vw, 21px); line-height: 1.2; }
+  .stats .row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 10px; }
+  .stats .big { font-family: var(--serif); font-weight: 500; font-size: clamp(70px, 22vw, 92px); line-height: .95; letter-spacing: -.02em; }
+  .stats .unit { margin-top: 2px; font-family: var(--serif); font-weight: 500; font-size: clamp(19px, 5.4vw, 22px); }
+  .chart { flex: 0 1 46%; height: 96px; display: flex; align-items: flex-end; gap: clamp(5px, 2vw, 9px); padding-bottom: 6px; }
+  .chart .bar { flex: 1; max-width: 14px; min-height: 9px; border-radius: 8px; background: linear-gradient(180deg, #d8b788, #b98a52); }
+  .stats .cmp { margin: 12px 0 0; max-width: 62%; font-size: 12.5px; line-height: 1.3; color: var(--muted); }
+  .stats .cmp b { font-weight: 400; color: var(--gold-dark); }
+
+  /* Три пункта */
+  .menu { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+  .item { display: flex; align-items: center; gap: 16px; height: 74px; padding: 0 18px; border-radius: 22px; width: 100%; cursor: default; }
+  .item .ic { flex: none; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: rgba(232,214,184,.65); }
+  .item .ic svg { width: 24px; height: 24px; fill: none; stroke: var(--gold-dark); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .item .lbl { flex: 1; font-size: 17px; }
+  .item .chev { flex: none; width: 18px; height: 18px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Нижняя навигация (такая же, как на главном экране) */
+  .nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    max-width: 480px; margin: 0 auto;
+    height: calc(var(--nav-h) + var(--safe-b)); padding-bottom: var(--safe-b);
+    display: grid; grid-template-columns: 1fr 1fr;
+    border-radius: 24px 24px 0 0;
+    background: rgba(255,251,244,.88);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    box-shadow: 0 -4px 18px rgba(120,88,40,.10);
+  }
+  .tab { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; color: var(--muted); text-align: center; }
+  .tab svg { width: 26px; height: 26px; }
+  .tab.on { color: var(--gold-dark); font-weight: 500; }
+  .tab.on::after { content: ""; position: absolute; bottom: 6px; width: 34px; height: 3px; border-radius: 3px; background: var(--gold); }
+  .tab .fill { fill: var(--gold); stroke: none; }
+  .tab .line { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .tab.on .line { stroke: var(--gold); }
+  .tab .homeline { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<main class="screen">
+  <h1>Профиль</h1>
+
+  <!-- Карточка пользователя -->
+  <section class="user glass">
+    <div class="avatar">
+      <div class="pic"><img id="avatarImg" alt="Аватар" hidden></div>
+      <!-- Значок карандаша: пока только оформление, без действия -->
+      <span class="edit" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></span>
+    </div>
+    <p class="name" id="userName"></p>
+  </section>
+
+  <!-- Статистика восстановления -->
+  <section class="stats">
+    <p class="lead" id="lead"></p>
+    <div class="row">
+      <div>
+        <div class="big" id="total">0</div>
+        <div class="unit" id="unit">минут</div>
+      </div>
+      <div class="chart" id="chart" role="img"></div>
+    </div>
+    <p class="cmp" id="cmp"></p>
+  </section>
+
+  <!-- Пункты (переходы подключим позже) -->
+  <div class="menu">
+    <button class="item glass" type="button">
+      <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c0-4.2 3.4-6.5 7.5-6.5s7.5 2.3 7.5 6.5"/></svg></span>
+      <span class="lbl">Мои данные</span>
+      <svg class="chev" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg>
+    </button>
+    <button class="item glass" type="button">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5z"/><path d="M12 6.5v13"/></svg></span>
+      <span class="lbl">Полезные материалы</span>
+      <svg class="chev" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg>
+    </button>
+    <button class="item glass" type="button">
+      <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.6a2.6 2.6 0 015.1.5c0 1.7-2.6 2.1-2.6 3.8"/><path d="M12 17.2v.1"/></svg></span>
+      <span class="lbl">Помощь</span>
+      <svg class="chev" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg>
+    </button>
+  </div>
+</main>
+
+<!-- Нижняя навигация -->
+<nav class="nav" aria-label="Навигация">
+  <button class="tab" id="tabHome" type="button">
+    <svg viewBox="0 0 24 24"><path class="homeline" d="M3 11.2L11.2 3.9a1.2 1.2 0 011.6 0L21 11.2V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/></svg>
+    <span>Главная</span>
+  </button>
+  <button class="tab on" type="button" aria-current="page">
+    <svg viewBox="0 0 24 24"><circle class="line" cx="12" cy="8" r="4"/><path class="line" d="M4.5 21c0-4.2 3.4-6.5 7.5-6.5s7.5 2.3 7.5 6.5"/></svg>
+    <span>Профиль</span>
+  </button>
+</nav>
+
+<script>
+(function () {
+  /* ================= НАСТРОЙКИ ================= */
+  // Пять аватарок. Каждому пользователю один раз случайно назначается одна из них.
+  // Порядок и количество не менять после запуска: сохранённый номер указывает на позицию в списке.
+  var AVATARS = [
+    'images/avatar-1.jpg',
+    'images/avatar-2.jpg',
+    'images/avatar-3.jpg',
+    'images/avatar-4.jpg',
+    'images/avatar-5.jpg'
+  ];
+  var MAIN_PAGE = 'main.html';
+  /* ============================================== */
+
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f1e4cf'); tg.setBackgroundColor('#f1e4cf'); } catch (e) {} }
+
+  // Без прохождения регистрации — на экран регистрации
+  var ok = false;
+  try { ok = sessionStorage.getItem('parakli_verified') === '1'; } catch (e) {}
+  if (!ok) { location.replace('index.html' + location.search); return; }
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  /* ---------- Хранилище пользователя ----------
+     Сейчас данные лежат в localStorage на устройстве (отдельная запись на каждого
+     Telegram-пользователя). Это НЕ общая база: на другом устройстве или после очистки
+     данных Telegram аватарка назначится заново.
+     Чтобы перейти на настоящую базу, замените тела getUser() и saveUser() запросами к серверу. */
+  var Store = {
+    userId: function () {
+      var u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+      return u && u.id ? String(u.id) : 'guest';
+    },
+    key: function () { return 'parakli_user_' + this.userId(); },
+    getUser: function () {
+      try { return JSON.parse(localStorage.getItem(this.key())) || {}; } catch (e) { return {}; }
+    },
+    saveUser: function (data) {
+      try { localStorage.setItem(this.key(), JSON.stringify(data)); } catch (e) { console.warn('Не удалось сохранить данные пользователя'); }
+    }
+  };
+
+  /* ---------- Статистика восстановления ----------
+     Базы тренировок пока нет, поэтому возвращаются нули.
+     Позже замените тело функции запросом к базе и верните тот же формат:
+       days     — ровно 7 чисел (минуты за каждый из последних 7 дней, от старого к новому)
+       thisWeek — минуты за последние 7 дней
+       prevWeek — минуты за предыдущие 7 дней */
+  function getWeeklyStats(userId) {
+    return { days: [0, 0, 0, 0, 0, 0, 0], thisWeek: 0, prevWeek: 0 };
+  }
+
+  /* ---------- Данные профиля ---------- */
+  function clean(v) { return typeof v === 'string' ? v.trim() : ''; }
+
+  var user = Store.getUser();
+
+  // Имя: сначала из регистрации; запасной вариант — данные Telegram
+  var first = clean(user.first_name), last = clean(user.last_name);
+  if (!first && !last) {
+    try {
+      var sp = JSON.parse(sessionStorage.getItem('parakli_profile') || '{}');
+      first = clean(sp.first_name); last = clean(sp.last_name);
+    } catch (e) {}
+  }
+  if (!first && !last) {
+    var tu = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+    if (tu) { first = clean(tu.first_name); last = clean(tu.last_name); }
+  }
+
+  // Аватарка: случайный выбор ТОЛЬКО если ещё не назначена
+  var avatarId = parseInt(user.avatar_id, 10);
+  if (!(avatarId >= 0 && avatarId < AVATARS.length)) {
+    avatarId = Math.floor(Math.random() * AVATARS.length);
+    user.avatar_id = avatarId;
+    Store.saveUser(user);
+  }
+
+  /* ---------- Отрисовка ---------- */
+  $('userName').textContent = (last + ' ' + first).trim() || 'Гость';
+
+  var img = $('avatarImg');
+  img.onload = function () { img.hidden = false; };
+  img.onerror = function () { console.warn('Не найден файл аватарки:', AVATARS[avatarId]); };
+  img.src = AVATARS[avatarId];
+
+  function plural(n, forms) {          // forms: [1 минута, 2 минуты, 5 минут]
+    n = Math.abs(n) % 100;
+    var d = n % 10;
+    if (n > 10 && n < 20) return forms[2];
+    if (d === 1) return forms[0];
+    if (d >= 2 && d <= 4) return forms[1];
+    return forms[2];
+  }
+
+  var stats = getWeeklyStats(Store.userId());
+  var days = (stats.days || []).slice(0, 7);
+  while (days.length < 7) days.push(0);              // всегда ровно 7 столбцов
+
+  // Заголовок карточки
+  var lead = $('lead');
+  lead.textContent = '';
+  lead.appendChild(document.createTextNode((first ? first + ', на этой неделе' : 'На этой неделе')));
+  lead.appendChild(document.createElement('br'));
+  lead.appendChild(document.createTextNode('вы уделили восстановлению'));
+
+  // Число минут
+  var total = Number(stats.thisWeek) || 0;
+  $('total').textContent = String(total);
+  $('unit').textContent = plural(total, ['минута', 'минуты', 'минут']);
+
+  // График: 7 столбцов
+  var chart = $('chart');
+  var max = Math.max.apply(null, days);
+  days.forEach(function (v) {
+    var bar = document.createElement('div');
+    bar.className = 'bar';
+    if (max > 0 && v > 0) bar.style.height = Math.max(10, Math.round(v / max * 100)) + '%';
+    chart.appendChild(bar);
+  });
+  chart.setAttribute('aria-label', 'Минуты восстановления за последние 7 дней: ' + days.join(', '));
+
+  // Сравнение с прошлой неделей — только по данным
+  var cmp = $('cmp'), diff = total - (Number(stats.prevWeek) || 0);
+  cmp.textContent = '';
+  if (diff === 0) {
+    cmp.textContent = 'Это столько же, сколько на прошлой неделе.';
+  } else {
+    var n = Math.abs(diff);
+    var b = document.createElement('b');
+    b.textContent = 'на ' + n + ' ' + plural(n, ['минуту', 'минуты', 'минут']) + (diff > 0 ? ' больше' : ' меньше');
+    cmp.appendChild(document.createTextNode('Это '));
+    cmp.appendChild(b);
+    cmp.appendChild(document.createTextNode(', чем на прошлой неделе.'));
+  }
+
+  /* ---------- Навигация ---------- */
+  $('tabHome').addEventListener('click', function () { location.href = MAIN_PAGE + location.search; });
+})();
+</script>
+</body>
+</html>
