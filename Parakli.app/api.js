@@ -3,7 +3,7 @@
   // Адрес сервера с API (туннель до вашего компьютера, например ngrok).
   // Поменяйте на свой домен, например 'https://my-name.ngrok-free.app'.
   // Если страницы раздаёт тот же сервер, что и API, оставьте ''.
-  var API_BASE = 'https://ВАШ-ДОМЕН.ngrok-free.app';
+  var API_BASE = 'https://unruly-rehab-skid.ngrok-free.dev';
 
   var tg = window.Telegram && window.Telegram.WebApp;
 
