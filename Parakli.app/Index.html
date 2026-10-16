@@ -116,11 +116,11 @@
   .hint { margin: -6px 6px 14px; font-size: 13px; color: var(--muted); }
  
   .msg { min-height: 20px; margin: 12px 4px 0; font-size: 14px; color: var(--error); }
- 
+  body.loading .wrap { visibility: hidden; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
-<body>
+<body class="loading">
  
 <main class="wrap">
  
@@ -155,9 +155,7 @@
     <span class="prefix" id="prefix">+7</span>
     <input id="phone" type="tel" inputmode="tel" placeholder="900 123-45-67" autocomplete="tel-national" required>
   </div>
- 
-  <div class="hint">Введите номер, который привязан к вашему Telegram</div>
- 
+  
   <div class="field" data-for="email">
     <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
     <input id="email" type="email" inputmode="email" placeholder="E-mail" autocomplete="email" maxlength="80" required>
@@ -192,27 +190,39 @@
  
 <script>
 (function () {
+  var MAIN_PAGE = 'main.html';
+
   var tg = window.Telegram && window.Telegram.WebApp;
   if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f6ecdc'); tg.setBackgroundColor('#f6ecdc'); } catch (e) {} }
- 
+
   var $ = function (id) { return document.getElementById(id); };
   var fields = ['first_name', 'last_name', 'phone', 'email', 'city'];
   var btn = $('submit'), msg = $('msg');
- 
-  // Данные из ссылки, которую сформировал бот
-  var params = new URLSearchParams(location.search);
-  var expectedHash = params.get('h');
-  var nameFromBot = params.get('n');
- 
-  // Предзаполнение из профиля Telegram
+
+  function goMain() { location.replace(MAIN_PAGE + location.search); }
+
+  /* ---------- Уже зарегистрирован? Тогда сразу на главный экран ---------- */
+  var shown = false;
+  function showForm() { if (shown) return; shown = true; document.body.classList.remove('loading'); }
+  setTimeout(showForm, 6000);
+
+  Parakli.getSession().then(function (r) {
+    if (r.ok && r.data.registered) { Parakli.markVerified(); goMain(); return; }
+    showForm();
+    if (r.status === 401) msg.textContent = 'Откройте приложение из Telegram: отправьте боту команду /start.';
+  }).catch(function () {
+    showForm();
+    msg.textContent = 'Нет связи с сервером. Попробуйте позже.';
+  });
+
+  /* ---------- Предзаполнение из профиля Telegram ---------- */
   if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
     var u = tg.initDataUnsafe.user;
     if (u.first_name) $('first_name').value = u.first_name;
     if (u.last_name) $('last_name').value = u.last_name;
   }
-  if (nameFromBot) $('first_name').value = nameFromBot;
- 
-  // Флаги стран (три полосы)
+
+  /* ---------- Флаги стран ---------- */
   var FLAGS = {
     ru: ['#fff', '#1c57a5', '#d52b1e'], kz: ['#00afca', '#00afca', '#00afca'],
     by: ['#d22730', '#d22730', '#00a651'], ua: ['#0057b7', '#0057b7', '#ffd700'],
@@ -226,8 +236,8 @@
     $('flag').innerHTML = c.map(function (x) { return '<i style="background:' + x + '"></i>'; }).join('');
     validate();
   });
- 
-  // Маска для российского формата: 900 123-45-67
+
+  /* ---------- Маска телефона: 900 123-45-67 ---------- */
   $('phone').addEventListener('input', function () {
     var d = this.value.replace(/\D/g, '');
     if ($('prefix').textContent === '+7') {
@@ -242,7 +252,8 @@
       this.value = d.slice(0, 12);
     }
   });
- 
+
+  /* ---------- Проверка полей ---------- */
   var rules = {
     first_name: function (v) { return v.trim().length >= 2; },
     last_name: function (v) { return v.trim().length >= 2; },
@@ -253,7 +264,7 @@
     email: function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()); },
     city: function (v) { return v.trim().length >= 2; }
   };
- 
+
   function validate(showErrors) {
     var ok = true;
     fields.forEach(function (id) {
@@ -267,66 +278,46 @@
     btn.disabled = !(ok && checks);
     return ok && checks;
   }
- 
+
   fields.concat(['consent', 'offer', 'ads']).forEach(function (id) {
     $(id).addEventListener('input', function () { validate(false); });
     $(id).addEventListener('change', function () { validate(false); });
   });
- 
-  async function sha256(text) {
-    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-    return Array.from(new Uint8Array(buf)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
-  }
- 
-  btn.addEventListener('click', async function () {
+
+  /* ---------- Отправка ---------- */
+  var sending = false;
+  btn.addEventListener('click', function () {
     msg.style.color = '';
     if (!validate(true)) { msg.textContent = 'Проверьте выделенные поля.'; return; }
- 
-    if (!expectedHash) {
-      msg.textContent = 'Сначала пройдите шаги в боте: отправьте ему команду /register.';
-      return;
-    }
- 
-    var phoneDigits = ($('prefix').textContent + $('phone').value).replace(/\D/g, '');
-    var entered = await sha256(phoneDigits);
- 
-    if (entered !== expectedHash) {
-      var wrap = document.querySelector('.field[data-for="phone"]');
-      wrap.classList.add('invalid');
-      $('phone').value = '';
-      $('phone').focus();
-      btn.disabled = true;
-      msg.textContent = 'Номер не совпадает с номером в вашем Telegram. Введите его заново.';
-      return;
-    }
- 
-    // Номер совпал — открываем основную страницу
-    msg.textContent = '';
-    try {
-      sessionStorage.setItem('parakli_verified', '1');
-      sessionStorage.setItem('parakli_profile', JSON.stringify({
-        first_name: $('first_name').value.trim(),
-        last_name: $('last_name').value.trim(),
-        email: $('email').value.trim(),
-        city: $('city').value.trim()
-      }));
-    } catch (e) {}
-    
-    try {
-      var tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-      var userKey = 'parakli_user_' + (tgUser && tgUser.id ? tgUser.id : 'guest');
-      var rec = {};
-      try { rec = JSON.parse(localStorage.getItem(userKey)) || {}; } catch (e2) {}
-      rec.first_name = $('first_name').value.trim();
-      rec.last_name = $('last_name').value.trim();
-      rec.email = $('email').value.trim();
-      rec.city = $('city').value.trim();
-      localStorage.setItem(userKey, JSON.stringify(rec));
-    } catch (e) {}
-    
-    location.href = 'main.html' + location.search;
+    if (sending) return;
+    sending = true; btn.disabled = true; msg.textContent = '';
+
+    Parakli.register({
+      first_name: $('first_name').value.trim(),
+      last_name: $('last_name').value.trim(),
+      phone: $('prefix').textContent + $('phone').value.replace(/\D/g, ''),
+      email: $('email').value.trim(),
+      city: $('city').value.trim()
+    }).then(function (r) {
+      if (r.ok || r.status === 409) { Parakli.markVerified(); goMain(); return; }
+      sending = false; validate(false);
+      if (r.status === 401) {
+        msg.textContent = 'Откройте приложение из Telegram: отправьте боту команду /start.';
+      } else if (r.data && r.data.fields) {
+        Object.keys(r.data.fields).forEach(function (k) {
+          var w = document.querySelector('.field[data-for="' + k + '"]');
+          if (w) w.classList.add('invalid');
+        });
+        msg.textContent = 'Проверьте выделенные поля.';
+      } else {
+        msg.textContent = 'Не удалось сохранить данные. Попробуйте ещё раз.';
+      }
+    }).catch(function () {
+      sending = false; validate(false);
+      msg.textContent = 'Нет связи с сервером. Попробуйте ещё раз.';
+    });
   });
- 
+
   validate(false);
 })();
 </script>
