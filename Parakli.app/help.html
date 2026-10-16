@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Помощь — Паракли</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="api.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Фон страницы: фото с камнями и песком (положите файл в папку images) */
+    --img-bg: url('Фото/Фон\ помощи.png');
+
+    --ink: #1c1510;
+    --muted: #8a7a68;
+    --gold-dark: #8c6330;
+    --serif: "Cormorant Garamond", "Times New Roman", serif;
+    --sans: "Jost", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: calc(env(safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; min-height: 100dvh;
+    font-family: var(--sans); color: var(--ink);
+    background-color: #f1e4cf;
+    background-image: var(--img-bg);
+    /* Светлый верх и камни внизу: картинка прижата к низу, не растягивается */
+    background-size: cover; background-position: center bottom;
+    background-repeat: no-repeat; background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; text-align: left; }
+  button:focus-visible { outline: 3px solid rgba(185,138,82,.55); outline-offset: 2px; }
+
+  .screen { max-width: 480px; margin: 0 auto; padding: calc(var(--safe-t) + 8px) 12px calc(var(--safe-b) + 40px); }
+
+  .back { width: 40px; height: 40px; display: grid; place-items: center; margin-left: -6px; }
+  .back svg { width: 24px; height: 24px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  h1 {
+    margin: 2px 4px 8px;
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(44px, 13.5vw, 60px); line-height: 1.05; letter-spacing: -.01em;
+  }
+  .lead { margin: 0 4px 18px; font-size: 14.5px; line-height: 1.35; color: var(--muted); }
+
+  .glass {
+    background: rgba(255,251,244,.74);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 6px 16px rgba(120,88,40,.10), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+
+  /* Единственная кнопка: обращение в Telegram */
+  .support {
+    display: flex; align-items: center; gap: 16px; width: 100%; min-height: 84px;
+    padding: 12px 18px 12px 14px; border-radius: 24px; color: #fff;
+    background: linear-gradient(135deg, #c9a06a 0%, #a8773f 55%, #94672f 100%);
+    box-shadow: 0 8px 20px rgba(120,80,30,.28), inset 0 0 0 1px rgba(255,255,255,.25);
+  }
+  .support .ic { flex: none; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.24); }
+  .support .ic svg { width: 28px; height: 28px; fill: #fff; }
+  .support .txt { flex: 1; min-width: 0; }
+  .support .t { display: block; font-family: var(--serif); font-weight: 600; font-size: clamp(20px, 5.8vw, 23px); line-height: 1.1; }
+  .support .s { display: block; margin-top: 4px; font-size: 13px; opacity: .9; }
+  .support .chev { flex: none; width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Информационные блоки (не кнопки) */
+  .info { display: flex; align-items: center; gap: 16px; margin-top: 12px; padding: 0 18px 0 14px; height: 84px; border-radius: 22px; }
+  .info .ic { flex: none; width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: rgba(232,214,184,.65); }
+  .info .ic svg { width: 26px; height: 26px; fill: none; stroke: var(--gold-dark); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .info .t { display: block; font-family: var(--serif); font-weight: 600; font-size: clamp(20px, 5.8vw, 23px); line-height: 1.1; }
+  .info .v { display: block; margin-top: 4px; font-size: 14.5px; color: var(--muted); }
+
+  .note { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 0 16px; height: 52px; border-radius: 18px; font-size: 13.5px; color: var(--muted); }
+  .note svg { flex: none; width: 24px; height: 24px; fill: none; stroke: var(--gold-dark); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Уведомление-заглушка */
+  .toast {
+    position: fixed; left: 50%; bottom: calc(var(--safe-b) + 28px); z-index: 10;
+    width: calc(100% - 32px); max-width: 420px;
+    padding: 14px 18px; border-radius: 18px; text-align: center; font-size: 14.5px;
+    background: rgba(255,251,244,.96); color: var(--ink);
+    box-shadow: 0 10px 28px rgba(90,60,20,.25), inset 0 0 0 1px rgba(185,138,82,.35);
+    opacity: 0; transform: translate(-50%, 12px); pointer-events: none;
+    transition: opacity .25s, transform .25s;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+</style>
+</head>
+<body>
+
+<main class="screen">
+  <button class="back" id="back" type="button" aria-label="Назад">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+  </button>
+
+  <h1>Помощь</h1>
+  <p class="lead">Если у вас появился вопрос, мы рядом.<br>Выберите удобный способ связи, и мы поможем.</p>
+
+  <!-- Единственная кнопка страницы -->
+  <button class="support" id="support" type="button">
+    <span class="ic"><svg viewBox="0 0 24 24"><path d="M21.6 3.4L2.9 10.6c-.9.4-.9 1.2-.2 1.4l4.8 1.5 1.8 5.5c.2.6.4.7.9.7.4 0 .6-.2.9-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l3-14.3c.3-1.2-.4-1.7-1.2-1.4zM8.6 13l9.2-5.8c.4-.3.8-.1.5.2L10.7 14.5l-.3 3.3L8.6 13z"/></svg></span>
+    <span class="txt">
+      <span class="t">Обратиться за помощью</span>
+      <span class="s">Быстрый ответ в Telegram</span>
+    </span>
+    <svg class="chev" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg>
+  </button>
+
+  <!-- Телефон: только информация (временный тестовый номер) -->
+  <div class="info glass">
+    <span class="ic"><svg viewBox="0 0 24 24"><path d="M6.6 3.5h3l1.5 4-2 1.3a11 11 0 005.1 5.1l1.3-2 4 1.5v3c0 1.1-.9 2-2 2C10.5 19.4 4.6 13.5 4.6 5.5c0-1.1.9-2 2-2z"/></svg></span>
+    <span><span class="t">Телефон</span><span class="v" id="phone"></span></span>
+  </div>
+
+  <!-- E-mail: только информация (временный тестовый адрес) -->
+  <div class="info glass">
+    <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6.5L20.5 7"/></svg></span>
+    <span><span class="t">E-mail</span><span class="v" id="email"></span></span>
+  </div>
+
+  <!-- Время ответа: только информация -->
+  <div class="note glass">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.2 2"/></svg>
+    <span>Обычно отвечаем в течение дня.</span>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  /* ================= НАСТРОЙКИ ================= */
+  // ВРЕМЕННЫЕ значения-заглушки. Замените на настоящие после согласования с заказчиком.
+  var SUPPORT_PHONE = '+7 000 000-00-00';        // тестовый номер, не настоящий
+  var SUPPORT_EMAIL = 'support@example.invalid'; // тестовый адрес, не настоящий
+
+  // Telegram поддержки. Сюда вставьте USERNAME сотрудника поддержки БЕЗ «@», например 'parakli_support'.
+  // Это именно username (ссылка t.me/username), а НЕ числовой Telegram ID:
+  // по одному числовому ID открыть чат нельзя. Пока пусто — кнопка показывает заглушку.
+  var SUPPORT_TELEGRAM_USERNAME = '';
+
+  var PROFILE_PAGE = 'profile.html';
+  /* ============================================== */
+
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f1e4cf'); tg.setBackgroundColor('#f1e4cf'); } catch (e) {} }
+
+  Parakli.guard();
+
+  var $ = function (id) { return document.getElementById(id); };
+  $('phone').textContent = SUPPORT_PHONE;
+  $('email').textContent = SUPPORT_EMAIL;
+
+  /* Уведомление */
+  var toastTimer;
+  function showToast(text) {
+    var t = $('toast');
+    t.textContent = text;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 3000);
+  }
+  function hideToast() { $('toast').classList.remove('show'); }
+  $('toast').addEventListener('click', hideToast);
+
+  /* Переход к поддержке в Telegram */
+  function open_support_telegram() {
+    var name = (SUPPORT_TELEGRAM_USERNAME || '').replace(/^@/, '').trim();
+    if (!/^[A-Za-z][A-Za-z0-9_]{4,31}$/.test(name)) {
+      showToast('Контакт службы поддержки скоро появится.');   // контакт не настроен
+      return;
+    }
+    var url = 'https://t.me/' + name;
+    if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
+    else window.open(url, '_blank', 'noopener');
+  }
+  $('support').addEventListener('click', open_support_telegram);
+
+  /* Назад в профиль */
+  function goBack() { location.href = PROFILE_PAGE + location.search; }
+  $('back').addEventListener('click', goBack);
+  if (tg && tg.BackButton) { try { tg.BackButton.show(); tg.BackButton.onClick(goBack); } catch (e) {} }
+})();
+</script>
+</body>
+</html>
