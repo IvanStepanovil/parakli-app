@@ -277,9 +277,7 @@
   if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f1e4cf'); tg.setBackgroundColor('#f1e4cf'); } catch (e) {} }
 
   // Защита от прямого открытия: без регистрации — на экран регистрации
-  var ok = false;
-  try { ok = sessionStorage.getItem('parakli_verified') === '1'; } catch (e) {}
-  if (!ok) { location.replace('index.html' + location.search); return; }
+  Parakli.guard();
 
   var $ = function (id) { return document.getElementById(id); };
 
