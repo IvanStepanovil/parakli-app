@@ -185,93 +185,29 @@
 
 <script>
 (function () {
-  /* ================= НАСТРОЙКИ ================= */
-  // Пять аватарок. Каждому пользователю один раз случайно назначается одна из них.
-  // Порядок и количество не менять после запуска: сохранённый номер указывает на позицию в списке.
   var AVATARS = [
-    'Фото/Аватарка №1.png',
-    'Фото/Аватарка №2.png',
-    'Фото/Аватарка №3.png',
-    'Фото/Аватарка №4.png',
-    'Фото/Аватарка №5.png'
+    'images/avatar-1.jpg',
+    'images/avatar-2.jpg',
+    'images/avatar-3.jpg',
+    'images/avatar-4.jpg',
+    'images/avatar-5.jpg'
   ];
   var MAIN_PAGE = 'main.html';
-  /* ============================================== */
 
   var tg = window.Telegram && window.Telegram.WebApp;
   if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f1e4cf'); tg.setBackgroundColor('#f1e4cf'); } catch (e) {} }
 
-  // Без прохождения регистрации — на экран регистрации
-  var ok = false;
-  try { ok = sessionStorage.getItem('parakli_verified') === '1'; } catch (e) {}
-  if (!ok) { location.replace('index.html' + location.search); return; }
-
   var $ = function (id) { return document.getElementById(id); };
 
-  /* ---------- Хранилище пользователя ----------
-     Сейчас данные лежат в localStorage на устройстве (отдельная запись на каждого
-     Telegram-пользователя). Это НЕ общая база: на другом устройстве или после очистки
-     данных Telegram аватарка назначится заново.
-     Чтобы перейти на настоящую базу, замените тела getUser() и saveUser() запросами к серверу. */
-  var Store = {
-    userId: function () {
-      var u = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-      return u && u.id ? String(u.id) : 'guest';
-    },
-    key: function () { return 'parakli_user_' + this.userId(); },
-    getUser: function () {
-      try { return JSON.parse(localStorage.getItem(this.key())) || {}; } catch (e) { return {}; }
-    },
-    saveUser: function (data) {
-      try { localStorage.setItem(this.key(), JSON.stringify(data)); } catch (e) { console.warn('Не удалось сохранить данные пользователя'); }
-    }
-  };
-
-  /* ---------- Статистика восстановления ----------
-     Базы тренировок пока нет, поэтому возвращаются нули.
-     Позже замените тело функции запросом к базе и верните тот же формат:
-       days     — ровно 7 чисел (минуты за каждый из последних 7 дней, от старого к новому)
-       thisWeek — минуты за последние 7 дней
-       prevWeek — минуты за предыдущие 7 дней */
-  function getWeeklyStats(userId) {
+  // Статистика: базы тренировок пока нет, поэтому нули. Позже заменить на запрос к серверу
+  // с тем же форматом: days — ровно 7 чисел, thisWeek, prevWeek.
+  function getWeeklyStats(telegramId) {
     return { days: [0, 0, 0, 0, 0, 0, 0], thisWeek: 0, prevWeek: 0 };
   }
 
-  /* ---------- Данные профиля ---------- */
   function clean(v) { return typeof v === 'string' ? v.trim() : ''; }
 
-  var user = Store.getUser();
-
-  // Имя: сначала из регистрации; запасной вариант — данные Telegram
-  var first = clean(user.first_name), last = clean(user.last_name);
-  if (!first && !last) {
-    try {
-      var sp = JSON.parse(sessionStorage.getItem('parakli_profile') || '{}');
-      first = clean(sp.first_name); last = clean(sp.last_name);
-    } catch (e) {}
-  }
-  if (!first && !last) {
-    var tu = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
-    if (tu) { first = clean(tu.first_name); last = clean(tu.last_name); }
-  }
-
-  // Аватарка: случайный выбор ТОЛЬКО если ещё не назначена
-  var avatarId = parseInt(user.avatar_id, 10);
-  if (!(avatarId >= 0 && avatarId < AVATARS.length)) {
-    avatarId = Math.floor(Math.random() * AVATARS.length);
-    user.avatar_id = avatarId;
-    Store.saveUser(user);
-  }
-
-  /* ---------- Отрисовка ---------- */
-  $('userName').textContent = (last + ' ' + first).trim() || 'Гость';
-
-  var img = $('avatarImg');
-  img.onload = function () { img.hidden = false; };
-  img.onerror = function () { console.warn('Не найден файл аватарки:', AVATARS[avatarId]); };
-  img.src = AVATARS[avatarId];
-
-  function plural(n, forms) {          // forms: [1 минута, 2 минуты, 5 минут]
+  function plural(n, forms) {
     n = Math.abs(n) % 100;
     var d = n % 10;
     if (n > 10 && n < 20) return forms[2];
@@ -280,48 +216,64 @@
     return forms[2];
   }
 
-  var stats = getWeeklyStats(Store.userId());
-  var days = (stats.days || []).slice(0, 7);
-  while (days.length < 7) days.push(0);              // всегда ровно 7 столбцов
+  function render(user) {
+    var first = clean(user.first_name), last = clean(user.last_name);
+    $('userName').textContent = (last + ' ' + first).trim() || 'Гость';
 
-  // Заголовок карточки
-  var lead = $('lead');
-  lead.textContent = '';
-  lead.appendChild(document.createTextNode((first ? first + ', на этой неделе' : 'На этой неделе')));
-  lead.appendChild(document.createElement('br'));
-  lead.appendChild(document.createTextNode('вы уделили восстановлению'));
+    var img = $('avatarImg');
+    var avatarId = parseInt(user.avatar_id, 10);
+    if (avatarId >= 0 && avatarId < AVATARS.length) {
+      img.onload = function () { img.hidden = false; };
+      img.onerror = function () { console.warn('Не найден файл аватарки:', AVATARS[avatarId]); };
+      img.src = AVATARS[avatarId];
+    }
 
-  // Число минут
-  var total = Number(stats.thisWeek) || 0;
-  $('total').textContent = String(total);
-  $('unit').textContent = plural(total, ['минута', 'минуты', 'минут']);
+    var stats = getWeeklyStats(user.telegram_id);
+    var days = (stats.days || []).slice(0, 7);
+    while (days.length < 7) days.push(0);
 
-  // График: 7 столбцов
-  var chart = $('chart');
-  var max = Math.max.apply(null, days);
-  days.forEach(function (v) {
-    var bar = document.createElement('div');
-    bar.className = 'bar';
-    if (max > 0 && v > 0) bar.style.height = Math.max(10, Math.round(v / max * 100)) + '%';
-    chart.appendChild(bar);
-  });
-  chart.setAttribute('aria-label', 'Минуты восстановления за последние 7 дней: ' + days.join(', '));
+    var lead = $('lead');
+    lead.textContent = '';
+    lead.appendChild(document.createTextNode(first ? first + ', на этой неделе' : 'На этой неделе'));
+    lead.appendChild(document.createElement('br'));
+    lead.appendChild(document.createTextNode('вы уделили восстановлению'));
 
-  // Сравнение с прошлой неделей — только по данным
-  var cmp = $('cmp'), diff = total - (Number(stats.prevWeek) || 0);
-  cmp.textContent = '';
-  if (diff === 0) {
-    cmp.textContent = 'Это столько же, сколько на прошлой неделе.';
-  } else {
-    var n = Math.abs(diff);
-    var b = document.createElement('b');
-    b.textContent = 'на ' + n + ' ' + plural(n, ['минуту', 'минуты', 'минут']) + (diff > 0 ? ' больше' : ' меньше');
-    cmp.appendChild(document.createTextNode('Это '));
-    cmp.appendChild(b);
-    cmp.appendChild(document.createTextNode(', чем на прошлой неделе.'));
+    var total = Number(stats.thisWeek) || 0;
+    $('total').textContent = String(total);
+    $('unit').textContent = plural(total, ['минута', 'минуты', 'минут']);
+
+    var chart = $('chart');
+    chart.textContent = '';
+    var max = Math.max.apply(null, days);
+    days.forEach(function (v) {
+      var bar = document.createElement('div');
+      bar.className = 'bar';
+      if (max > 0 && v > 0) bar.style.height = Math.max(10, Math.round(v / max * 100)) + '%';
+      chart.appendChild(bar);
+    });
+    chart.setAttribute('aria-label', 'Минуты восстановления за последние 7 дней: ' + days.join(', '));
+
+    var cmp = $('cmp'), diff = total - (Number(stats.prevWeek) || 0);
+    cmp.textContent = '';
+    if (diff === 0) {
+      cmp.textContent = 'Это столько же, сколько на прошлой неделе.';
+    } else {
+      var n = Math.abs(diff);
+      var b = document.createElement('b');
+      b.textContent = 'на ' + n + ' ' + plural(n, ['минуту', 'минуты', 'минут']) + (diff > 0 ? ' больше' : ' меньше');
+      cmp.appendChild(document.createTextNode('Это '));
+      cmp.appendChild(b);
+      cmp.appendChild(document.createTextNode(', чем на прошлой неделе.'));
+    }
   }
 
-  /* ---------- Навигация ---------- */
+  Parakli.getSession().then(function (r) {
+    if (r.ok && r.data.registered) { Parakli.markVerified(); render(r.data.user); }
+    else location.replace('index.html' + location.search);
+  }).catch(function () {
+    render({});
+  });
+
   $('tabHome').addEventListener('click', function () { location.href = MAIN_PAGE + location.search; });
 })();
 </script>
