@@ -310,6 +310,19 @@
         city: $('city').value.trim()
       }));
     } catch (e) {}
+    
+    try {
+      var tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+      var userKey = 'parakli_user_' + (tgUser && tgUser.id ? tgUser.id : 'guest');
+      var rec = {};
+      try { rec = JSON.parse(localStorage.getItem(userKey)) || {}; } catch (e2) {}
+      rec.first_name = $('first_name').value.trim();
+      rec.last_name = $('last_name').value.trim();
+      rec.email = $('email').value.trim();
+      rec.city = $('city').value.trim();
+      localStorage.setItem(userKey, JSON.stringify(rec));
+    } catch (e) {}
+    
     location.href = 'main.html' + location.search;
   });
  
