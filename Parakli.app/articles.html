@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Полезные статьи — Паракли</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="api.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Общий фон страницы — замените путь на свой, если нужен другой файл */
+    --img-bg: url('Фото/Фон\ главного\ экрана.png');
+
+    --ink: #1c1510;
+    --muted: #8a7a68;
+    --serif: "Cormorant Garamond", "Times New Roman", serif;
+    --sans: "Jost", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: calc(env(safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; min-height: 100dvh;
+    font-family: var(--sans); color: var(--ink);
+    background-color: #f1e4cf;
+    background-image: var(--img-bg);
+    background-size: cover; background-position: center top;
+    background-repeat: no-repeat; background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; text-align: left; }
+  button:focus-visible { outline: 3px solid rgba(185,138,82,.55); outline-offset: 2px; }
+
+  .screen { max-width: 480px; margin: 0 auto; padding: calc(var(--safe-t) + 8px) 12px calc(var(--safe-b) + 28px); }
+  [hidden] { display: none !important; }
+
+  .back { width: 40px; height: 40px; display: grid; place-items: center; margin-left: -6px; }
+  .back svg { width: 24px; height: 24px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  h1 {
+    margin: 4px 4px 14px;
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(44px, 13.5vw, 60px); line-height: 1.05; letter-spacing: -.01em;
+  }
+
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .card {
+    display: flex; align-items: center; gap: 14px; width: 100%;
+    padding: 6px 14px 6px 6px; border-radius: 16px;
+    background: rgba(255,251,244,.72);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 6px 16px rgba(120,88,40,.10), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+  .thumb { flex: none; width: 92px; height: 104px; border-radius: 12px; overflow: hidden; background: rgba(232,214,184,.65); }
+  .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .info { flex: 1; min-width: 0; }
+  .info h2 { margin: 0 0 6px; font-family: var(--serif); font-weight: 500; font-size: clamp(18px, 5.4vw, 21px); line-height: 1.18; }
+  .info p { margin: 0; font-size: 12.5px; line-height: 1.3; color: var(--muted); }
+  .chev { flex: none; width: 18px; height: 18px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .status { margin: 24px 6px; text-align: center; font-size: 14px; color: var(--muted); }
+
+  /* Полный текст статьи */
+  .hero { margin: 4px 0 16px; border-radius: 18px; overflow: hidden; background: rgba(232,214,184,.65); aspect-ratio: 16 / 10; }
+  .hero img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .article h1 { font-size: clamp(30px, 9vw, 38px); line-height: 1.1; margin: 0 4px 14px; }
+  .article .body {
+    padding: 18px 18px 8px; border-radius: 18px;
+    background: rgba(255,251,244,.72);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 6px 16px rgba(120,88,40,.10), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+  .article .body p { margin: 0 0 14px; font-size: 15.5px; line-height: 1.55; }
+</style>
+</head>
+<body>
+
+<main class="screen">
+  <button class="back" id="back" type="button" aria-label="Назад">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+  </button>
+
+  <!-- Список статей -->
+  <section id="listView">
+    <h1>Полезные статьи</h1>
+    <div class="list" id="list"></div>
+    <p class="status" id="status" hidden></p>
+  </section>
+
+  <!-- Полный текст статьи -->
+  <section class="article" id="articleView" hidden>
+    <div class="hero" id="hero"><img id="heroImg" alt=""></div>
+    <h1 id="aTitle"></h1>
+    <div class="body" id="aBody"></div>
+  </section>
+</main>
+
+<script>
+(function () {
+  /* ================= НАСТРОЙКИ ================= */
+  // Статьи лежат в файле articles.json: чтобы добавить, изменить или удалить статью,
+  // правьте только его (поля: id, title, description, image, text).
+  var ARTICLES_URL = 'articles.json';
+  var PROFILE_PAGE = 'profile.html';
+  /* ============================================== */
+
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f1e4cf'); tg.setBackgroundColor('#f1e4cf'); } catch (e) {} }
+
+  Parakli.guard();
+
+  var $ = function (id) { return document.getElementById(id); };
+  var NS = 'http://www.w3.org/2000/svg';
+  var articles = [];
+  var listScroll = 0;
+  var openedFromList = false;
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function picture(src, cls) {
+    var box = el('div', cls);
+    var img = document.createElement('img');
+    img.alt = '';
+    img.loading = 'lazy';
+    img.onerror = function () { img.style.display = 'none'; };
+    img.src = src || '';
+    box.appendChild(img);
+    return box;
+  }
+  function chevron() {
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('class', 'chev');
+    svg.setAttribute('viewBox', '0 0 16 16');
+    var p = document.createElementNS(NS, 'path');
+    p.setAttribute('d', 'M6 3l5 5-5 5');
+    svg.appendChild(p);
+    return svg;
+  }
+
+  function renderList() {
+    var list = $('list');
+    list.textContent = '';
+    articles.forEach(function (a) {
+      var card = el('button', 'card');
+      card.type = 'button';
+      card.appendChild(picture(a.image, 'thumb'));
+      var info = el('div', 'info');
+      info.appendChild(el('h2', '', a.title));
+      info.appendChild(el('p', '', a.description));
+      card.appendChild(info);
+      card.appendChild(chevron());
+      card.addEventListener('click', function () {
+        listScroll = window.scrollY;
+        openedFromList = true;
+        location.hash = encodeURIComponent(a.id);
+      });
+      list.appendChild(card);
+    });
+  }
+
+  function showList() {
+    $('articleView').hidden = true;
+    $('listView').hidden = false;
+    window.scrollTo(0, listScroll);
+  }
+
+  function showArticle(a) {
+    $('listView').hidden = true;
+    $('articleView').hidden = false;
+    var img = $('heroImg');
+    img.style.display = '';
+    img.onerror = function () { img.style.display = 'none'; };
+    img.src = a.image || '';
+    $('aTitle').textContent = a.title;
+    var body = $('aBody');
+    body.textContent = '';
+    (a.text || []).forEach(function (t) { body.appendChild(el('p', '', t)); });
+    window.scrollTo(0, 0);
+  }
+
+  function route() {
+    var id = decodeURIComponent(location.hash.replace(/^#/, ''));
+    var a = articles.filter(function (x) { return x.id === id; })[0];
+    if (a) showArticle(a); else showList();
+  }
+
+  /* Назад: из статьи — к списку, из списка — в профиль */
+  function goBack() {
+    if (!$('articleView').hidden) {
+      if (openedFromList) history.back();
+      else { history.replaceState(null, '', location.pathname + location.search); route(); }
+    } else {
+      location.href = PROFILE_PAGE + location.search;
+    }
+  }
+  $('back').addEventListener('click', goBack);
+  if (tg && tg.BackButton) { try { tg.BackButton.show(); tg.BackButton.onClick(goBack); } catch (e) {} }
+  window.addEventListener('hashchange', route);
+
+  fetch(ARTICLES_URL, { cache: 'no-store' })
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status + ' — файл ' + ARTICLES_URL + ' не найден на сервере'); return r.json(); })
+    .then(function (data) {
+      articles = Array.isArray(data) ? data : [];
+      renderList();
+      if (!articles.length) { $('status').textContent = 'Статьи скоро появятся.'; $('status').hidden = false; }
+      route();
+    })
+    .catch(function (err) {
+      console.error('Статьи не загрузились:', err);
+      $('status').textContent = 'Не удалось загрузить статьи. Попробуйте позже. (' + (err && err.message ? err.message : err) + ')';
+      $('status').hidden = false;
+    });
+})();
+</script>
+</body>
+</html>
