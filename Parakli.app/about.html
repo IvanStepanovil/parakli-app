@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>О нас — Паракли</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="api.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* ===== ПУТИ К КАРТИНКАМ — поменяйте на свои =====
+       Остальные картинки задаются в HTML ниже (теги <img>):
+       about-hero.jpg, about-manifest.jpg, about-mission.jpg, logo.png */
+    --img-bg: url('Фото/Фон\ страницы\ о\ нас.png');   /* общий фон страницы */
+
+    --ink: #1c1510;
+    --muted: #7d6e5c;
+    --gold: #b98a52;
+    --gold-dark: #8c6330;
+    --serif: "Cormorant Garamond", "Times New Roman", serif;
+    --sans: "Jost", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: calc(env(safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; min-height: 100dvh;
+    font-family: var(--sans); color: var(--ink);
+    background-color: #f1e4cf;
+    background-image: var(--img-bg);
+    background-size: cover; background-position: center top;
+    background-repeat: no-repeat; background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
+  button:focus-visible { outline: 3px solid rgba(185,138,82,.55); outline-offset: 2px; }
+  img { display: block; max-width: 100%; }
+
+  .screen {
+    position: relative; max-width: 480px; margin: 0 auto;
+    padding: calc(var(--safe-t) + 4px) 14px calc(var(--safe-b) + 28px);
+  }
+
+  /* Верх: стрелка, заголовок, описание, фото */
+  .top { position: relative; padding-bottom: 6px; min-height: 230px; }
+  .hero {
+    position: absolute; top: calc(-1 * (var(--safe-t) + 4px)); right: -14px;
+    width: 66%; height: 270px; object-fit: cover; object-position: center;
+    pointer-events: none; z-index: 0;
+    -webkit-mask-image: linear-gradient(to left, #000 55%, transparent 100%), linear-gradient(to bottom, #000 60%, transparent 100%);
+    -webkit-mask-composite: source-in;
+            mask-image: linear-gradient(to left, #000 55%, transparent 100%), linear-gradient(to bottom, #000 60%, transparent 100%);
+            mask-composite: intersect;
+  }
+  .back {
+    position: relative; z-index: 2; display: grid; place-items: center;
+    width: 44px; height: 44px; margin-left: -10px;
+  }
+  .back svg { width: 24px; height: 24px; fill: none; stroke: var(--ink); stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+  h1 {
+    position: relative; z-index: 1; margin: 2px 0 8px;
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(52px, 17vw, 72px); line-height: 1; letter-spacing: -.01em;
+  }
+  .tag {
+    position: relative; z-index: 1; margin: 0; max-width: 62%;
+    font-size: clamp(15px, 4.4vw, 18px); line-height: 1.3; font-weight: 300; color: var(--muted);
+  }
+
+  /* Карточки */
+  .card {
+    position: relative; z-index: 1; margin-top: 14px; padding: 18px 16px 16px; border-radius: 24px;
+    background: rgba(255,251,244,.78);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 6px 16px rgba(120,88,40,.10), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+  h2 {
+    margin: 0 0 10px;
+    font-family: var(--serif); font-weight: 600;
+    font-size: clamp(28px, 8.4vw, 34px); line-height: 1.05;
+  }
+  .card p { margin: 0 0 12px; font-size: clamp(12.5px, 3.6vw, 14px); line-height: 1.45; color: var(--muted); }
+  .card p:last-child { margin-bottom: 0; }
+
+  .row { display: grid; grid-template-columns: 1fr clamp(112px, 40%, 160px); gap: 14px; align-items: start; }
+  .row .photo { border-radius: 18px; overflow: hidden; background: rgba(232,214,184,.6); }
+  .row .photo img { width: 100%; height: 100%; object-fit: cover; }
+  .manifest .photo { aspect-ratio: 3 / 4.6; margin-top: 2px; }
+  .mission .photo { aspect-ratio: 4 / 3; align-self: center; }
+
+  .note {
+    display: flex; align-items: center; gap: 12px; margin-top: 14px; padding: 10px 14px 10px 10px;
+    border-radius: 18px; background: rgba(238,222,194,.7);
+  }
+  .note .ic { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,251,244,.85); box-shadow: inset 0 0 0 1px rgba(185,138,82,.25); }
+  .note .ic svg { width: 22px; height: 22px; fill: none; stroke: var(--gold-dark); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .card .note p { margin: 0; font-size: clamp(12.5px, 3.7vw, 14px); line-height: 1.35; color: var(--gold-dark); }
+
+  /* Смысл нашего знака */
+  .sign { position: relative; z-index: 1; margin-top: 26px; }
+  .sign h2 { margin-bottom: 14px; }
+  .sign .grid { display: grid; grid-template-columns: clamp(96px, 34%, 140px) 1fr; gap: 14px; align-items: center; }
+  .sign .logo img { width: 100%; height: auto; }
+  .sign ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+  .sign li { display: flex; align-items: flex-start; gap: 12px; }
+  .sign .ic { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(238,222,194,.75); box-shadow: inset 0 0 0 1px rgba(185,138,82,.3); }
+  .sign .ic svg { width: 24px; height: 24px; fill: none; stroke: var(--gold-dark); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+  .sign .t { margin: 0 0 2px; font-size: clamp(13.5px, 3.9vw, 15px); font-weight: 500; line-height: 1.2; }
+  .sign .d { margin: 0; font-size: clamp(11.5px, 3.3vw, 12.5px); line-height: 1.3; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<main class="screen">
+
+  <!-- Верх страницы: стрелка назад, заголовок, описание, фото -->
+  <header class="top">
+    <button class="back" id="back" type="button" aria-label="Назад на главную">
+      <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <h1>О нас</h1>
+    <p class="tag">Паракали — рядом на пути,<br>чтобы к себе прийти.</p>
+  </header>
+
+  <!-- Манифест -->
+  <section class="card manifest">
+    <div class="row">
+      <div>
+        <h2>Манифест</h2>
+        <p>Мы верим, что в каждом человеке уже есть ресурс для роста. Но путь редко бывает прямым. Нам мешают усталость, расфокус, недосып и привычки, которые тянут назад.</p>
+        <p>Мы не обещаем изменить жизнь за один день, но создаём простые инструменты, которые помогают сделать следующий шаг: восстановиться, сосредоточиться, отдохнуть и двигаться в нужном направлении.</p>
+      </div>
+      <div class="photo"><img src="Фото/Фото Манифест.png" alt=""></div>
+    </div>
+    <div class="note">
+      <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 21v-8"/><path d="M12 13c-4.5 0-6-3-6-6 4 0 6 2 6 6z"/><path d="M12 15c0-3.5 2-5.5 6-5.5 0 3.5-2 5.5-6 5.5z"/></svg></span>
+      <p>Меньше барьеров.<br>Больше ресурса. Больше движения вперёд.</p>
+    </div>
+  </section>
+
+  <!-- Миссия -->
+  <section class="card mission">
+    <div class="row">
+      <div>
+        <h2>Миссия</h2>
+        <p>Миссия Паракали — помочь каждому преодолеть свои барьеры и реализовать свой потенциал.</p>
+      </div>
+      <div class="photo"><img src="Фото/Фото миссии.png" alt=""></div>
+    </div>
+  </section>
+
+  <!-- Смысл нашего знака (здесь логотип остаётся) -->
+  <section class="sign">
+    <h2>Смысл нашего знака</h2>
+    <div class="grid">
+      <div class="logo"><img src="Фото/Лого с текстом.png" alt="Паракли"></div>
+      <ul>
+        <li>
+          <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg></span>
+          <div><p class="t">Солнце</p><p class="d">Внутренний ресурс человека и возможность раскрыть его.</p></div>
+        </li>
+        <li>
+          <span class="ic"><svg viewBox="0 0 24 24"><path d="M3 19l6-10 4 6 2-3 6 7z"/></svg></span>
+          <div><p class="t">Тёмные формы и светлый путь</p><p class="d">Барьеры на пути к себе и движение через них.</p></div>
+        </li>
+        <li>
+          <span class="ic"><svg viewBox="0 0 24 24"><path d="M4 17l6-6 4 4 6-7"/><path d="M15 8h5v5"/></svg></span>
+          <div><p class="t">Движение вверх</p><p class="d">Рост через регулярные, посильные действия.</p></div>
+        </li>
+        <li>
+          <span class="ic"><svg viewBox="0 0 24 24"><path d="M12 2c.8 6.5 3.5 9.2 10 10-6.5.8-9.2 3.5-10 10-.8-6.500-3.5-9.200-10-10 6.500-.8 9.200-3.500 10-10z"/></svg></span>
+          <div><p class="t">Четырёхлучевая звезда</p><p class="d">Четыре направления бренда: восстановление, движение, фокус и сон.</p></div>
+        </li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  var MAIN_PAGE = 'main.html';
+
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f1e4cf'); tg.setBackgroundColor('#f1e4cf'); } catch (e) {} }
+
+  // Если пользователь не зарегистрирован — отправляем на первый экран
+  if (window.Parakli) Parakli.guard();
+
+  // Единственный способ вернуться на главную — стрелка в левом верхнем углу
+  document.getElementById('back').addEventListener('click', function () {
+    location.href = MAIN_PAGE + location.search;
+  });
+
+  // Если какой-то файл картинки не найден — пишем его имя в консоль
+  Array.prototype.forEach.call(document.images, function (img) {
+    img.addEventListener('error', function () {
+      console.warn('Не найден файл изображения:', img.getAttribute('src'));
+      img.style.visibility = 'hidden';
+    });
+  });
+})();
+</script>
+</body>
+</html>
