@@ -207,15 +207,31 @@
     return card;
   }
 
-  fetch(PRODUCTS_URL, { cache: 'no-store' })
-    .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
-    .then(function (data) {
-      if (!Array.isArray(data)) throw new Error('format');
-      data.filter(function (p) { return p && typeof p.name === 'string' && p.name.trim() && isFinite(Number(p.price)); })
-          .forEach(function (p) { $('list').appendChild(renderProduct(p)); });
+  /* Кэш: показываем сохранённые товары сразу, свежие подгружаем в фоне */
+  var CACHE_KEY = 'parakli_products_v1';
+  var shownTxt = null;
+  function renderAll(data) {
+    if (!Array.isArray(data)) throw new Error('format');
+    var list = $('list');
+    list.textContent = '';
+    data.filter(function (p) { return p && typeof p.name === 'string' && p.name.trim() && isFinite(Number(p.price)); })
+        .forEach(function (p) { list.appendChild(renderProduct(p)); });
+  }
+  try {
+    var cached = localStorage.getItem(CACHE_KEY);
+    if (cached) { renderAll(JSON.parse(cached)); shownTxt = cached; }
+  } catch (e) { shownTxt = null; }
+
+  fetch(PRODUCTS_URL, { cache: 'no-cache' })
+    .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.text(); })
+    .then(function (txt) {
+      var data = JSON.parse(txt);
+      try { localStorage.setItem(CACHE_KEY, txt); } catch (e) {}
+      if (txt !== shownTxt) { renderAll(data); shownTxt = txt; }
     })
     .catch(function (e) { console.warn('Товары не загружены:', e); });
 })();
 </script>
 </body>
 </html>
+
