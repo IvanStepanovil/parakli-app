@@ -33,7 +33,7 @@
       if (Parakli.isVerified()) return;
       Parakli.getSession().then(function (r) {
         if (r.ok && r.data.registered) Parakli.markVerified();
-        else location.replace('index.html' + location.search);
+        else location.replace('Index.html' + location.search);
       }).catch(function () { /* нет связи — не выкидываем пользователя */ });
     }
   };
