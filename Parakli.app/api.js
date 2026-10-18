@@ -38,4 +38,30 @@
     }
   };
   window.Parakli = Parakli;
+
+  /* Фоновая подгрузка картинок следующих экранов, пока пользователь читает текущий.
+     Когда он перейдёт дальше, картинки уже лежат в кэше и появляются сразу.
+     Ничего не делает при экономии трафика или медленной сети.
+     Чтобы поменять набор, правьте списки ниже (ключ — имя текущей страницы). */
+  var PREFETCH = {
+    'index.html':    ['Фото/Фон главного экрана.png', 'Фото/Лого.png'],
+    'main.html':     ['Фото/Фон блока тренировок.png', 'Фото/Фон помощи.png',
+                      'Фото/Мяч 4см.png', 'Фото/Мяч 6см.png', 'Фото/Арахис.png'],
+    'profile.html':  ['Фото/Статья №1.png', 'Фото/Статья №2.png', 'Фото/Статья №3.png',
+                      'Фото/Статья №4.png', 'Фото/Статья №5.png', 'Фото/Фон помощи.png']
+  };
+  function prefetchNext() {
+    try {
+      var c = navigator.connection;
+      if (c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || ''))) return;
+      var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+      (PREFETCH[page] || []).forEach(function (src) { var i = new Image(); i.decoding = 'async'; i.src = src; });
+    } catch (e) {}
+  }
+  window.addEventListener('load', function () {
+    if (window.requestIdleCallback) requestIdleCallback(prefetchNext, { timeout: 4000 });
+    else setTimeout(prefetchNext, 1500);
+  });
+})();
+
 })();
