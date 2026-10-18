@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Мои данные — Паракли</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="api.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Фон страницы (тот же, что у профиля) */
+    --img-bg: url('Фото/Фон\ главного\ экрана.png');
+
+    --ink: #1c1510;
+    --muted: #8a7a68;
+    --gold: #b98a52;
+    --gold-dark: #8c6330;
+    --danger: #a8452c;
+    --serif: "Cormorant Garamond", "Times New Roman", serif;
+    --sans: "Jost", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: calc(env(safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; min-height: 100dvh;
+    font-family: var(--sans); color: var(--ink);
+    background-color: #f1e4cf;
+    background-image: var(--img-bg);
+    background-size: cover; background-position: center top;
+    background-repeat: no-repeat; background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; text-align: left; }
+  button:focus-visible { outline: 3px solid rgba(185,138,82,.55); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  .screen { max-width: 480px; margin: 0 auto; padding: calc(var(--safe-t) + 8px) 12px calc(var(--safe-b) + 32px); }
+
+  .back { width: 40px; height: 40px; display: grid; place-items: center; margin-left: -6px; }
+  .back svg { width: 24px; height: 24px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  h1 {
+    margin: 2px 4px 14px;
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(44px, 13.5vw, 60px); line-height: 1.05; letter-spacing: -.01em;
+  }
+
+  .glass {
+    background: rgba(255,251,244,.74);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 6px 16px rgba(120,88,40,.10), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+
+  /* Карточка пользователя */
+  .user { display: flex; align-items: center; gap: 18px; padding: 14px 16px; border-radius: 24px; }
+  .avatar { position: relative; flex: none; width: clamp(80px, 26vw, 100px); aspect-ratio: 1; }
+  .avatar .pic { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; background: rgba(232,214,184,.7); box-shadow: 0 0 0 2px rgba(255,255,255,.7); }
+  .avatar .pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .avatar .edit {
+    position: absolute; right: -2px; bottom: 0; width: 34px; height: 34px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: linear-gradient(160deg, #b98a52, #8c6330);
+    box-shadow: 0 0 0 3px #fbf5ea, 0 3px 8px rgba(140,99,48,.35);
+  }
+  .avatar .edit svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .user .name {
+    flex: 1; min-width: 0; margin: 0;
+    font-family: var(--serif); font-weight: 500; font-size: clamp(22px, 6.4vw, 27px); line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+
+  /* Форма */
+  .form { margin-top: 12px; padding: 14px 16px 18px; border-radius: 24px; }
+  .field + .field { margin-top: 10px; }
+  .field label { display: block; margin: 0 0 6px 2px; font-size: 13px; color: var(--muted); }
+  .box {
+    display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 6px 0 14px;
+    border-radius: 14px; border: 1px solid rgba(185,138,82,.38); background: rgba(255,255,255,.55);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .box:focus-within { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(185,138,82,.2); }
+  .field.invalid .box { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(168,69,44,.12); }
+  .box > svg { flex: none; width: 22px; height: 22px; fill: none; stroke: var(--gold-dark); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .box input {
+    flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; padding: 0;
+    font: 400 16px var(--sans); color: var(--ink);   /* 16px — чтобы iOS не увеличивал страницу при вводе */
+  }
+  .pen { flex: none; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; }
+  .pen svg { width: 18px; height: 18px; fill: none; stroke: var(--gold-dark); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .err { margin: 6px 2px 0; font-size: 12.5px; line-height: 1.3; color: var(--danger); }
+
+  .save {
+    display: block; width: 100%; height: 56px; margin-top: 16px; border-radius: 18px; text-align: center;
+    font: 400 18px var(--sans); letter-spacing: .01em; color: #fff;
+    background: linear-gradient(135deg, #c9a06a 0%, #a8773f 55%, #94672f 100%);
+    box-shadow: 0 8px 20px rgba(120,80,30,.28), inset 0 0 0 1px rgba(255,255,255,.25);
+    transition: opacity .15s, transform .1s;
+  }
+  .save:active { transform: scale(.99); }
+  .save:disabled { opacity: .65; cursor: default; }
+
+  /* Выбор аватарки */
+  .sheet-back { position: fixed; inset: 0; z-index: 20; display: flex; align-items: flex-end; justify-content: center; background: rgba(40,28,12,.38); }
+  .sheet { width: 100%; max-width: 480px; padding: 18px 16px calc(var(--safe-b) + 22px); border-radius: 26px 26px 0 0; background: #fbf5ea; box-shadow: 0 -10px 30px rgba(60,40,10,.25); }
+  .sheet h2 { margin: 0 4px 14px; font-family: var(--serif); font-weight: 500; font-size: 26px; }
+  .opts { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .opt { aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: rgba(232,214,184,.7); box-shadow: 0 0 0 2px rgba(255,255,255,.7); }
+  .opt img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .opt.on { box-shadow: 0 0 0 3px var(--gold-dark), 0 0 0 6px rgba(185,138,82,.25); }
+
+  /* Уведомление */
+  .toast {
+    position: fixed; left: 50%; bottom: calc(var(--safe-b) + 24px); z-index: 30;
+    width: calc(100% - 32px); max-width: 420px; padding: 14px 18px; border-radius: 18px;
+    text-align: center; font-size: 14.5px; background: rgba(255,251,244,.97); color: var(--ink);
+    box-shadow: 0 10px 28px rgba(90,60,20,.25), inset 0 0 0 1px rgba(185,138,82,.35);
+    opacity: 0; transform: translate(-50%, 12px); pointer-events: none; transition: opacity .25s, transform .25s;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .toast.bad { box-shadow: 0 10px 28px rgba(90,60,20,.25), inset 0 0 0 1px rgba(168,69,44,.5); color: var(--danger); }
+</style>
+</head>
+<body>
+
+<main class="screen">
+  <button class="back" id="back" type="button" aria-label="Назад">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+  </button>
+
+  <h1>Мои данные</h1>
+
+  <!-- Карточка пользователя -->
+  <section class="user glass">
+    <div class="avatar">
+      <div class="pic"><img id="avatarImg" alt="Аватарка" hidden></div>
+      <button class="edit" id="editAvatar" type="button" aria-label="Выбрать другую аватарку"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+    </div>
+    <p class="name" id="fullName"></p>
+  </section>
+
+  <!-- Форма -->
+  <section class="form glass">
+    <div class="field" id="w-first_name">
+      <label for="f-first_name">Имя</label>
+      <div class="box">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c0-4.2 3.4-6.5 7.5-6.5s7.5 2.3 7.5 6.5"/></svg>
+        <input id="f-first_name" type="text" maxlength="40" autocomplete="given-name" aria-describedby="err-first_name">
+        <button class="pen" type="button" data-for="f-first_name" aria-label="Изменить: Имя"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+      </div>
+      <p class="err" id="err-first_name" hidden></p>
+    </div>
+
+    <div class="field" id="w-last_name">
+      <label for="f-last_name">Фамилия</label>
+      <div class="box">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4.5 21c0-4.2 3.4-6.5 7.5-6.5s7.5 2.3 7.5 6.5"/></svg>
+        <input id="f-last_name" type="text" maxlength="40" autocomplete="family-name" aria-describedby="err-last_name">
+        <button class="pen" type="button" data-for="f-last_name" aria-label="Изменить: Фамилия"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+      </div>
+      <p class="err" id="err-last_name" hidden></p>
+    </div>
+
+    <div class="field" id="w-phone">
+      <label for="f-phone">Телефон</label>
+      <div class="box">
+        <svg viewBox="0 0 24 24"><path d="M6.6 3.5h3l1.5 4-2 1.3a11 11 0 005.1 5.1l1.3-2 4 1.5v3c0 1.1-.9 2-2 2C10.5 19.4 4.6 13.5 4.6 5.5c0-1.1.9-2 2-2z"/></svg>
+        <input id="f-phone" type="tel" inputmode="tel" maxlength="24" autocomplete="tel" aria-describedby="err-phone">
+        <button class="pen" type="button" data-for="f-phone" aria-label="Изменить: Телефон"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+      </div>
+      <p class="err" id="err-phone" hidden></p>
+    </div>
+
+    <div class="field" id="w-email">
+      <label for="f-email">E-mail</label>
+      <div class="box">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6.5L20.5 7"/></svg>
+        <input id="f-email" type="email" inputmode="email" maxlength="80" autocomplete="email" autocapitalize="none" spellcheck="false" aria-describedby="err-email">
+        <button class="pen" type="button" data-for="f-email" aria-label="Изменить: E-mail"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+      </div>
+      <p class="err" id="err-email" hidden></p>
+    </div>
+
+    <div class="field" id="w-city">
+      <label for="f-city">Город</label>
+      <div class="box">
+        <svg viewBox="0 0 24 24"><path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0113 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+        <input id="f-city" type="text" maxlength="60" autocomplete="address-level2" aria-describedby="err-city">
+        <button class="pen" type="button" data-for="f-city" aria-label="Изменить: Город"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+      </div>
+      <p class="err" id="err-city" hidden></p>
+    </div>
+
+    <button class="save" id="save" type="button">Сохранить изменения</button>
+  </section>
+</main>
+
+<!-- Выбор аватарки -->
+<div class="sheet-back" id="sheetBack" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <h2 id="sheetTitle">Выберите аватарку</h2>
+    <div class="opts" id="opts"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  /* ================= НАСТРОЙКИ ================= */
+  // Пять аватарок: порядок и пути должны совпадать с массивом AVATARS в profile.html
+  var AVATARS = [
+    'Фото/Аватарка №1.png',
+    'Фото/Аватарка №2.png',
+    'Фото/Аватарка №3.png',
+    'Фото/Аватарка №4.png',
+    'Фото/Аватарка №5.png'
+  ];
+  var PROFILE_PAGE = 'profile.html';
+  /* ============================================== */
+
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f1e4cf'); tg.setBackgroundColor('#f1e4cf'); } catch (e) {} }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var KEYS = ['first_name', 'last_name', 'phone', 'email', 'city'];
+  var LABELS = { first_name: 'Имя', last_name: 'Фамилия', phone: 'Телефон', email: 'E-mail', city: 'Город' };
+  var MESSAGES = {
+    first_name: 'Введите имя (от 2 символов).',
+    last_name: 'Введите фамилию (от 2 символов).',
+    phone: 'Введите номер телефона: от 7 до 15 цифр.',
+    email: 'Введите корректный e-mail, например name@mail.ru.',
+    city: 'Введите город (от 2 символов).',
+    avatar_id: 'Выберите одну из доступных аватарок.'
+  };
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  var saved = null;          // последние СОХРАНЁННЫЕ данные пользователя
+  var pendingAvatar = null;  // аватарка, выбранная на этой странице (сохраняется только кнопкой)
+  var touched = false;       // пользователь уже что-то менял — не затираем ввод данными с сервера
+  var saving = false;
+
+  function clean(v) { return typeof v === 'string' ? v.trim() : ''; }
+
+  /* ---------- Телефон ---------- */
+  function fmtPhone(v) {
+    var d = String(v || '').replace(/\D/g, '');
+    if (!d) return '';
+    if (d.length === 11 && d.charAt(0) === '7') return '+7 ' + d.slice(1, 4) + ' ' + d.slice(4, 7) + '-' + d.slice(7, 9) + '-' + d.slice(9);
+    return '+' + d;
+  }
+  function phoneDigits(v) {
+    var d = String(v || '').replace(/\D/g, '');
+    if (d.length === 11 && d.charAt(0) === '8') d = '7' + d.slice(1);   // 8 900… → +7 900…
+    return d;
+  }
+
+  /* ---------- Отображение ---------- */
+  function fullName(u) { return (clean(u.last_name) + ' ' + clean(u.first_name)).trim() || 'Гость'; }
+
+  function setAvatarImg(id) {
+    var img = $('avatarImg');
+    if (!(id >= 0 && id < AVATARS.length)) return;
+    img.onload = function () { img.hidden = false; };
+    img.onerror = function () { console.warn('Не найден файл аватарки:', AVATARS[id]); };
+    img.src = AVATARS[id];
+  }
+
+  function showSaved(u) {
+    $('fullName').textContent = fullName(u);
+    var id = parseInt(u.avatar_id, 10);
+    if (pendingAvatar === null) setAvatarImg(id);
+  }
+
+  function fillForm(u) {
+    KEYS.forEach(function (k) {
+      $('f-' + k).value = k === 'phone' ? fmtPhone(u[k]) : clean(u[k]);
+    });
+  }
+
+  function readForm() {
+    var v = {};
+    KEYS.forEach(function (k) { v[k] = clean($('f-' + k).value); });
+    return v;
+  }
+
+  /* ---------- Ошибки полей ---------- */
+  function clearError(k) {
+    $('w-' + k).classList.remove('invalid');
+    $('f-' + k).removeAttribute('aria-invalid');
+    $('err-' + k).hidden = true;
+  }
+  function setError(k, text) {
+    $('w-' + k).classList.add('invalid');
+    $('f-' + k).setAttribute('aria-invalid', 'true');
+    var e = $('err-' + k); e.textContent = text || MESSAGES[k]; e.hidden = false;
+  }
+  function validate(v) {
+    var bad = [];
+    if (v.first_name.length < 2 || v.first_name.length > 40) bad.push('first_name');
+    if (v.last_name.length < 2 || v.last_name.length > 40) bad.push('last_name');
+    var d = phoneDigits(v.phone);
+    if (d.length < 7 || d.length > 15) bad.push('phone');
+    if (v.email.length > 80 || !EMAIL_RE.test(v.email)) bad.push('email');
+    if (v.city.length < 2 || v.city.length > 60) bad.push('city');
+    return bad;
+  }
+
+  /* ---------- Уведомление ---------- */
+  var toastTimer;
+  function toast(text, bad) {
+    var t = $('toast');
+    t.textContent = text;
+    t.classList.toggle('bad', !!bad);
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3200);
+  }
+  $('toast').addEventListener('click', function () { $('toast').classList.remove('show'); });
+
+  /* ---------- Выбор аватарки ---------- */
+  var optBtns = [];
+  AVATARS.forEach(function (src, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'opt';
+    b.setAttribute('aria-label', 'Аватарка ' + (i + 1));
+    var im = document.createElement('img'); im.alt = ''; im.src = src;
+    im.onerror = function () { im.style.display = 'none'; };
+    b.appendChild(im);
+    b.addEventListener('click', function () {
+      pendingAvatar = i;
+      setAvatarImg(i);          // только предварительный просмотр, в базу уйдёт по кнопке «Сохранить изменения»
+      closePicker();
+    });
+    $('opts').appendChild(b); optBtns.push(b);
+  });
+  function currentAvatar() {
+    if (pendingAvatar !== null) return pendingAvatar;
+    var id = saved ? parseInt(saved.avatar_id, 10) : NaN;
+    return id >= 0 ? id : -1;
+  }
+  function openPicker() {
+    var cur = currentAvatar();
+    optBtns.forEach(function (b, i) { b.classList.toggle('on', i === cur); });
+    $('sheetBack').hidden = false;
+  }
+  function closePicker() { $('sheetBack').hidden = true; $('editAvatar').focus(); }
+  $('editAvatar').addEventListener('click', openPicker);
+  $('sheetBack').addEventListener('click', function (e) { if (e.target === $('sheetBack')) closePicker(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('sheetBack').hidden) closePicker(); });
+
+  /* ---------- Поля ---------- */
+  KEYS.forEach(function (k) {
+    var inp = $('f-' + k);
+    inp.addEventListener('input', function () { touched = true; clearError(k); });
+    inp.addEventListener('focus', function () {   // чтобы клавиатура не закрывала поле
+      setTimeout(function () { try { inp.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }, 300);
+    });
+  });
+  $('f-phone').addEventListener('blur', function () {
+    var v = this.value.trim();
+    if (v && phoneDigits(v).length >= 7 && phoneDigits(v).length <= 15) this.value = fmtPhone(phoneDigits(v));
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.pen'), function (b) {
+    b.addEventListener('click', function () {
+      var inp = $(b.getAttribute('data-for')); inp.focus();
+      var n = inp.value.length; try { inp.setSelectionRange(n, n); } catch (e) {}
+    });
+  });
+
+  /* ---------- Сохранение ---------- */
+  function save() {
+    if (saving) return;
+    var v = readForm();
+    KEYS.forEach(clearError);
+    var bad = validate(v);
+    if (bad.length) {
+      bad.forEach(function (k) { setError(k); });
+      $('f-' + bad[0]).focus();
+      toast('Проверьте выделенные поля.', true);
+      return;
+    }
+    var payload = {
+      first_name: v.first_name, last_name: v.last_name, phone: phoneDigits(v.phone),
+      email: v.email, city: v.city
+    };
+    if (pendingAvatar !== null) payload.avatar_id = pendingAvatar;
+
+    saving = true;
+    var btn = $('save'); btn.disabled = true; btn.textContent = 'Сохраняем…';
+
+    Parakli.updateProfile(payload).then(function (r) {
+      if (r.ok && r.data && r.data.user) {
+        saved = r.data.user;
+        pendingAvatar = null;
+        fillForm(saved);
+        showSaved(saved);
+        toast('Изменения успешно сохранены.');                  // только после подтверждения сервера
+      } else if (r.status === 400 && r.data && r.data.fields) {
+        Object.keys(r.data.fields).forEach(function (k) { if (MESSAGES[k]) { if ($('w-' + k)) setError(k); else toast(MESSAGES[k], true); } });
+        toast('Проверьте выделенные поля.', true);
+      } else if (r.status === 401) {
+        toast('Сессия устарела. Закройте и снова откройте приложение.', true);
+      } else if (r.status === 403) {
+        toast('Сначала завершите регистрацию.', true);
+      } else {
+        toast('Не удалось сохранить. Попробуйте ещё раз.', true);
+      }
+    }).catch(function () {
+      toast('Нет связи с сервером. Данные не потеряны, попробуйте ещё раз.', true);
+    }).then(function () {
+      saving = false; btn.disabled = false; btn.textContent = 'Сохранить изменения';
+    });
+  }
+  $('save').addEventListener('click', save);
+
+  /* ---------- Назад в профиль ---------- */
+  function goBack() { location.href = PROFILE_PAGE + location.search; }
+  $('back').addEventListener('click', goBack);
+  if (tg && tg.BackButton) { try { tg.BackButton.show(); tg.BackButton.onClick(goBack); } catch (e) {} }
+
+  /* ---------- Загрузка данных ---------- */
+  var cached = Parakli.cachedUser && Parakli.cachedUser();
+  if (cached) { saved = cached; fillForm(cached); showSaved(cached); }
+
+  Parakli.getSession().then(function (r) {
+    if (r.ok && r.data.registered) {
+      Parakli.markVerified();
+      saved = r.data.user;
+      if (!touched) fillForm(saved);   // если пользователь уже начал вводить, его ввод не затираем
+      showSaved(saved);
+    } else if (r.status === 401 || (r.ok && !r.data.registered)) {
+      location.replace('index.html' + location.search);
+    } else if (!cached) {
+      toast('Не удалось загрузить данные.', true);
+    }
+  }).catch(function () {
+    if (!cached) toast('Не удалось загрузить данные. Проверьте соединение.', true);
+  });
+})();
+</script>
+</body>
+</html>
