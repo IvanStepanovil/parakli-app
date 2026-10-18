@@ -56,7 +56,8 @@
     box-shadow: 0 6px 16px rgba(120,88,40,.10), inset 0 0 0 1px rgba(255,255,255,.7);
   }
   .thumb { flex: none; width: 92px; height: 104px; border-radius: 12px; overflow: hidden; background: rgba(232,214,184,.65); }
-  .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .thumb img, .hero img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .25s; }
+  .thumb img.ready, .hero img.ready { opacity: 1; }
   .info { flex: 1; min-width: 0; }
   .info h2 { margin: 0 0 6px; font-family: var(--serif); font-weight: 500; font-size: clamp(18px, 5.4vw, 21px); line-height: 1.18; }
   .info p { margin: 0; font-size: 12.5px; line-height: 1.3; color: var(--muted); }
@@ -66,7 +67,6 @@
 
   /* Полный текст статьи */
   .hero { margin: 4px 0 16px; border-radius: 18px; overflow: hidden; background: rgba(232,214,184,.65); aspect-ratio: 16 / 10; }
-  .hero img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .article h1 { font-size: clamp(30px, 9vw, 38px); line-height: 1.1; margin: 0 4px 14px; }
   .article .body {
     padding: 18px 18px 8px; border-radius: 18px;
@@ -125,11 +125,13 @@
     if (text != null) e.textContent = text;
     return e;
   }
-  function picture(src, cls) {
+  function picture(src, cls, eager) {
     var box = el('div', cls);
     var img = document.createElement('img');
     img.alt = '';
-    img.loading = 'lazy';
+    img.decoding = 'async';
+    if (eager === false) img.loading = 'lazy';
+    img.onload = function () { img.classList.add('ready'); };
     img.onerror = function () { img.style.display = 'none'; };
     img.src = src || '';
     box.appendChild(img);
@@ -148,10 +150,10 @@
   function renderList() {
     var list = $('list');
     list.textContent = '';
-    articles.forEach(function (a) {
+    articles.forEach(function (a, i) {
       var card = el('button', 'card');
       card.type = 'button';
-      card.appendChild(picture(a.image, 'thumb'));
+      card.appendChild(picture(a.image, 'thumb', i < 6));
       var info = el('div', 'info');
       info.appendChild(el('h2', '', a.title));
       info.appendChild(el('p', '', a.description));
@@ -176,7 +178,8 @@
     $('listView').hidden = true;
     $('articleView').hidden = false;
     var img = $('heroImg');
-    img.style.display = '';
+    img.style.display = ''; img.classList.remove('ready');
+    img.onload = function () { img.classList.add('ready'); };
     img.onerror = function () { img.style.display = 'none'; };
     img.src = a.image || '';
     $('aTitle').textContent = a.title;
@@ -279,13 +282,23 @@
     route();
   }
 
-  fetch(ARTICLES_URL, { cache: 'no-store' })
-    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status + ' — файл ' + ARTICLES_URL + ' не найден на сервере'); return r.json(); })
-    .then(function (data) { start(data); })
-    .catch(function (err) {
-      console.warn('articles.json не загрузился, показываю встроенный список:', err);
-      start(FALLBACK_ARTICLES, true);
-    });
+  /* Кэш: показываем сохранённый список сразу, а свежий подгружаем в фоне */
+  var CACHE_KEY = 'parakli_articles_v1';
+  function readCache() { try { return localStorage.getItem(CACHE_KEY); } catch (e) { return null; } }
+  function writeCache(txt) { try { localStorage.setItem(CACHE_KEY, txt); } catch (e) {} }
+
+  var cachedTxt = readCache(), shownTxt = null;
+  try { if (cachedTxt) { start(JSON.parse(cachedTxt)); shownTxt = cachedTxt; } } catch (e) { cachedTxt = null; }
+  if (!shownTxt) start(FALLBACK_ARTICLES);   // самый первый запуск: мгновенно показываем встроенный список
+
+  fetch(ARTICLES_URL, { cache: 'no-cache' })   // no-cache: браузер сверяет версию, но не качает файл заново, если он не менялся
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    .then(function (txt) {
+      var data = JSON.parse(txt);
+      writeCache(txt);
+      if (txt !== shownTxt) { start(data); shownTxt = txt; }   // перерисовываем, только если список изменился
+    })
+    .catch(function (err) { console.warn('articles.json не загрузился, остался сохранённый список:', err); });
 })();
 </script>
 </body>
