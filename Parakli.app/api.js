@@ -21,8 +21,26 @@
   }
 
   var Parakli = {
-    getSession: function () { return call('/api/session'); },
-    register: function (data) { return call('/api/register', data); },
+    getSession: function () {
+      return call('/api/session').then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
+    },
+    register: function (data) {
+      return call('/api/register', data).then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
+    },
+    // Сохранение страницы «Мои данные»; при успехе обновляем сохранённую копию профиля
+    updateProfile: function (data) {
+      return call('/api/profile', data).then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
+    },
+
+    // Копия профиля на устройстве: страницы показывают имя и аватарку сразу, а свежие данные подтягиваются в фоне
+    cacheUser: function (user) { try { localStorage.setItem('parakli_user_v1', JSON.stringify(user)); } catch (e) {} },
+    cachedUser: function () {
+      try {
+        var u = JSON.parse(localStorage.getItem('parakli_user_v1') || 'null');
+        var me = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
+        return (u && typeof u === 'object' && (!me || u.telegram_id === me)) ? u : null;
+      } catch (e) { return null; }
+    },
 
     // «Уже проверяли в этом сеансе» — чтобы не обращаться к серверу на каждой странице
     markVerified: function () { try { sessionStorage.setItem('parakli_verified', '1'); } catch (e) {} },
@@ -33,7 +51,7 @@
       if (Parakli.isVerified()) return;
       Parakli.getSession().then(function (r) {
         if (r.ok && r.data.registered) Parakli.markVerified();
-        else location.replace('Index.html' + location.search);
+        else location.replace('index.html' + location.search);
       }).catch(function () { /* нет связи — не выкидываем пользователя */ });
     }
   };
@@ -62,6 +80,4 @@
     if (window.requestIdleCallback) requestIdleCallback(prefetchNext, { timeout: 4000 });
     else setTimeout(prefetchNext, 1500);
   });
-})();
-
 })();
