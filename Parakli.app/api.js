@@ -3,7 +3,7 @@
   // Адрес сервера с API (туннель до вашего компьютера, например ngrok).
   // Поменяйте на свой домен, например 'https://my-name.ngrok-free.app'.
   // Если страницы раздаёт тот же сервер, что и API, оставьте ''.
-  var API_BASE = 'parakli-ivanstepanovil.waw0.amvera.tech';
+  var API_BASE = 'https://parakli-ivanstepanovil.waw0.amvera.tech';
 
   var tg = window.Telegram && window.Telegram.WebApp;
 
