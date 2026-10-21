@@ -99,6 +99,49 @@
   .check input:checked + .box svg { opacity: 1; transform: none; }
   .check input:focus-visible + .box { box-shadow: 0 0 0 3px rgba(185,138,82,.35); }
   .check a { color: inherit; text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 3px; }
+  label.box { cursor: pointer; position: relative; }
+  label.box::after { content: ""; position: absolute; inset: -8px; }   /* увеличенная область нажатия */
+  .check:has(button) { cursor: default; }
+  .doc-link {
+    font: inherit; line-height: inherit; color: inherit; text-align: left; background: none; border: 0; padding: 0; cursor: pointer;
+    text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 4px;
+  }
+  .doc-link:focus-visible { outline: 3px solid rgba(185,138,82,.45); outline-offset: 3px; border-radius: 4px; }
+
+  /* Окно с документом */
+  html.noscroll, html.noscroll body { overflow: hidden; }
+  .doc-back {
+    position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center;
+    background: rgba(40,28,12,0); transition: background .22s;
+  }
+  .doc-back[hidden] { display: none; }
+  .doc-back.open { background: rgba(40,28,12,.42); }
+  .doc-sheet {
+    width: 100%; max-width: 480px; max-height: 88vh; max-height: 88dvh; display: flex; flex-direction: column;
+    background: #fbf5ea; border-radius: 26px 26px 0 0; box-shadow: 0 -10px 30px rgba(60,40,10,.25);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    transform: translateY(28px); opacity: 0; transition: transform .25s ease, opacity .22s;
+  }
+  .doc-back.open .doc-sheet { transform: none; opacity: 1; }
+  .doc-head { display: flex; align-items: flex-start; gap: 12px; padding: 20px 16px 10px 20px; }
+  .doc-head h2 { flex: 1; margin: 0; font-family: var(--serif); font-weight: 500; font-size: 26px; line-height: 1.12; }
+  .doc-x {
+    flex: none; width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 50%;
+    background: rgba(232,214,184,.65); cursor: pointer;
+  }
+  .doc-x svg { width: 18px; height: 18px; stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: round; }
+  .doc-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 20px 12px; }
+  .doc-body h3 { margin: 16px 0 4px; font-family: var(--serif); font-weight: 600; font-size: 19px; }
+  .doc-body p { margin: 0 0 6px; font-size: 15px; line-height: 1.55; color: #3d3226; }
+  .doc-body p.note { margin-top: 18px; font-size: 13px; color: var(--muted); font-style: italic; }
+  .doc-foot { padding: 10px 16px 16px; }
+  .doc-ok {
+    display: block; width: 100%; height: 52px; border: 0; border-radius: 16px; cursor: pointer;
+    font: 400 18px var(--sans); color: #fff;
+    background: linear-gradient(135deg, #c9a06a 0%, #a8773f 55%, #94672f 100%);
+    box-shadow: 0 8px 20px rgba(120,80,30,.25), inset 0 0 0 1px rgba(255,255,255,.25);
+  }
+  .doc-x:focus-visible, .doc-ok:focus-visible { outline: 3px solid rgba(185,138,82,.5); outline-offset: 2px; }
  
   /* Кнопка */
   .btn {
@@ -129,12 +172,12 @@
  
   <div class="field" data-for="first_name">
     <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
-    <input id="first_name" type="text" placeholder="Имя" autocomplete="given-name" maxlength="40" required>
+    <input id="first_name" type="text" placeholder="Имя" autocomplete="off" maxlength="40" required>
   </div>
  
   <div class="field" data-for="last_name">
     <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
-    <input id="last_name" type="text" placeholder="Фамилия" autocomplete="family-name" maxlength="40" required>
+    <input id="last_name" type="text" placeholder="Фамилия" autocomplete="off" maxlength="40" required>
   </div>
  
   <div class="field" data-for="phone">
@@ -153,41 +196,56 @@
       </select>
     </label>
     <span class="prefix" id="prefix">+7</span>
-    <input id="phone" type="tel" inputmode="tel" placeholder="900 123-45-67" autocomplete="tel-national" required>
+    <input id="phone" type="tel" inputmode="tel" placeholder="900 123-45-67" autocomplete="off" required>
   </div>
   
   <div class="field" data-for="email">
     <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
-    <input id="email" type="email" inputmode="email" placeholder="E-mail" autocomplete="email" maxlength="80" required>
+    <input id="email" type="email" inputmode="email" placeholder="E-mail" autocomplete="off" maxlength="80" required>
   </div>
  
   <div class="field" data-for="city">
     <svg class="ic" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
-    <input id="city" type="text" placeholder="Город" autocomplete="address-level2" maxlength="60" required>
+    <input id="city" type="text" placeholder="Город" autocomplete="off" maxlength="60" required>
   </div>
  
+  <!-- 1. Обязательное: нажатие на квадрат отмечает галочку, нажатие на текст открывает документ -->
+  <div class="check">
+    <input type="checkbox" id="consent">
+    <label class="box" for="consent" aria-label="Я согласен(а) с обработкой персональных данных"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></label>
+    <button type="button" class="doc-link" data-doc="privacy">Я согласен(а) с обработкой<br>персональных данных</button>
+  </div>
+
+  <!-- 2. Обязательное -->
+  <div class="check">
+    <input type="checkbox" id="offer">
+    <label class="box" for="offer" aria-label="Я принимаю условия оферты"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></label>
+    <button type="button" class="doc-link" data-doc="offer">Я принимаю условия оферты</button>
+  </div>
+
+  <!-- 3. Необязательное: по умолчанию не отмечено -->
   <label class="check">
-    <input type="checkbox" id="ads" checked>
+    <input type="checkbox" id="ads">
     <span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
     <span>Соглашаюсь на получение<br>рекламной рассылки</span>
-  </label>
- 
-  <label class="check">
-    <input type="checkbox" id="consent">
-    <span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
-    <span>Я согласен(а) с обработкой<br>персональных данных</span>
-  </label>
- 
-  <label class="check">
-    <input type="checkbox" id="offer">
-    <span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
-    <span>Я принимаю условия оферты</span>
   </label>
 
   
   <button class="btn" id="submit" type="button" disabled>Продолжить</button>
   <div class="msg" id="msg" role="alert"></div>
 </main>
+
+<!-- Окно с документом -->
+<div class="doc-back" id="docModal" hidden>
+  <div class="doc-sheet" role="dialog" aria-modal="true" aria-labelledby="docTitle">
+    <div class="doc-head">
+      <h2 id="docTitle"></h2>
+      <button type="button" class="doc-x" id="docX" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="doc-body" id="docBody"></div>
+    <div class="doc-foot"><button type="button" class="doc-ok" id="docOk">Закрыть</button></div>
+  </div>
+</div>
  
 <script>
 (function () {
@@ -215,13 +273,6 @@
     showForm();
     msg.textContent = 'Нет связи с сервером. Попробуйте позже.';
   });
-
-  /* ---------- Предзаполнение из профиля Telegram ---------- */
-  if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-    var u = tg.initDataUnsafe.user;
-    if (u.first_name) $('first_name').value = u.first_name;
-    if (u.last_name) $('last_name').value = u.last_name;
-  }
 
   /* ---------- Флаги стран ---------- */
   var FLAGS = {
@@ -317,6 +368,88 @@
       sending = false; validate(false);
       msg.textContent = 'Нет связи с сервером. Попробуйте ещё раз.';
     });
+  });
+
+  /* ---------- Окно с документом ---------- */
+  // ЗАГЛУШКИ текстов. Когда будут готовы утверждённые документы, замените содержимое здесь.
+  var DOCS = {
+    privacy: {
+      title: 'Согласие на обработку персональных данных',
+      sections: [
+        ['1. Кто обрабатывает данные', 'Оператором персональных данных выступает компания «Паракли» (далее — Компания). Этот документ описывает, какие данные мы собираем в мини-приложении и для чего.'],
+        ['2. Какие данные мы собираем', 'При регистрации мы получаем ваше имя, фамилию, номер телефона, адрес электронной почты и город, а также идентификатор и имя пользователя в Telegram. С вашим личным кабинетом связываются выбранная аватарка и сведения об использовании приложения.'],
+        ['3. Зачем нам эти данные', 'Мы используем их, чтобы создать и поддерживать личный кабинет, открывать доступ к тренировкам и полезным материалам, связываться с вами по вопросам сервиса и поддержки и улучшать работу приложения.'],
+        ['4. Хранение и защита', 'Данные хранятся на защищённых серверах и доступны только уполномоченным сотрудникам. Мы принимаем технические и организационные меры, чтобы защитить их от потери и несанкционированного доступа.'],
+        ['5. Передача третьим лицам', 'Мы не продаём ваши данные и не передаём их третьим лицам, кроме случаев, когда это необходимо для работы сервиса или предусмотрено законом.'],
+        ['6. Ваши права', 'Вы можете в любой момент посмотреть и изменить свои данные в разделе «Мои данные», а также запросить их удаление или отозвать согласие, обратившись в поддержку через раздел «Помощь».'],
+        ['7. Рекламные сообщения', 'Рекламную рассылку мы отправляем только тем, кто отдельно отметил на неё согласие. Это согласие не обязательно для регистрации и может быть отозвано в любой момент.'],
+        ['8. Срок хранения', 'Данные хранятся, пока действует ваш личный кабинет, или до отзыва согласия, если иное не требуется законом.']
+      ],
+      note: 'Текст-заглушка. Окончательная редакция документа будет опубликована до запуска приложения.'
+    },
+    offer: {
+      title: 'Условия оферты',
+      sections: [
+        ['1. Предмет', 'Настоящая оферта определяет условия использования мини-приложения «Паракли» в Telegram: личного кабинета, тренировок, полезных материалов и каталога товаров.'],
+        ['2. Регистрация', 'Для доступа вы создаёте личный кабинет и указываете достоверные данные. Вы отвечаете за сохранность доступа к своему Telegram-аккаунту.'],
+        ['3. Порядок использования', 'Приложение предназначено для личного некоммерческого использования. Нельзя копировать материалы, нарушать работу сервиса и использовать его в противоправных целях.'],
+        ['4. Здоровье и безопасность', 'Материалы и упражнения носят информационный характер и не заменяют консультацию врача. При болях, травмах и хронических заболеваниях перед занятиями посоветуйтесь со специалистом. Занимайтесь в комфортном темпе и прекращайте упражнение при дискомфорте или боли.'],
+        ['5. Права на материалы', 'Тексты, фотографии, логотип и другие материалы принадлежат Компании и защищены законом. Использовать их можно только внутри приложения.'],
+        ['6. Ответственность', 'Компания старается обеспечить бесперебойную работу, но не гарантирует отсутствие технических сбоев и не отвечает за временную недоступность сервиса.'],
+        ['7. Изменение условий', 'Компания может обновлять условия оферты. Актуальная версия всегда доступна в приложении. Продолжая пользоваться сервисом, вы принимаете изменения.'],
+        ['8. Связь', 'По любым вопросам обращайтесь в поддержку через раздел «Помощь».']
+      ],
+      note: 'Текст-заглушка. Окончательная редакция документа будет опубликована до запуска приложения.'
+    }
+  };
+
+  var docModal = $('docModal'), docTimer = null, docOpener = null;
+
+  function openDoc(key, opener) {
+    var d = DOCS[key];
+    if (!d) return;
+    clearTimeout(docTimer);
+    $('docTitle').textContent = d.title;
+    var body = $('docBody');
+    body.textContent = '';
+    d.sections.forEach(function (sec) {
+      var h = document.createElement('h3'); h.textContent = sec[0];
+      var p = document.createElement('p'); p.textContent = sec[1];
+      body.appendChild(h); body.appendChild(p);
+    });
+    if (d.note) { var n = document.createElement('p'); n.className = 'note'; n.textContent = d.note; body.appendChild(n); }
+    body.scrollTop = 0;
+    docOpener = opener || null;
+    docModal.hidden = false;
+    document.documentElement.classList.add('noscroll');
+    requestAnimationFrame(function () { docModal.classList.add('open'); });
+    if (tg && tg.BackButton) { try { tg.BackButton.onClick(closeDoc); tg.BackButton.show(); } catch (e) {} }
+    $('docOk').focus();
+  }
+
+  function closeDoc() {
+    if (docModal.hidden) return;
+    docModal.classList.remove('open');
+    document.documentElement.classList.remove('noscroll');
+    if (tg && tg.BackButton) { try { tg.BackButton.offClick(closeDoc); tg.BackButton.hide(); } catch (e) {} }
+    docTimer = setTimeout(function () { docModal.hidden = true; }, 230);
+    if (docOpener && docOpener.focus) docOpener.focus();
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.doc-link'), function (b) {
+    b.addEventListener('click', function () { openDoc(b.getAttribute('data-doc'), b); });
+  });
+  $('docX').addEventListener('click', closeDoc);
+  $('docOk').addEventListener('click', closeDoc);
+  docModal.addEventListener('click', function (e) { if (e.target === docModal) closeDoc(); });   // нажатие вне окна
+  document.addEventListener('keydown', function (e) {
+    if (docModal.hidden) return;
+    if (e.key === 'Escape') { closeDoc(); return; }
+    if (e.key === 'Tab') {                                   // фокус не уходит за пределы окна
+      var f = [$('docX'), $('docOk')], i = f.indexOf(document.activeElement);
+      e.preventDefault();
+      f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus();
+    }
   });
 
   validate(false);
