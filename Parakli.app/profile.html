@@ -227,10 +227,19 @@
 
     var img = $('avatarImg');
     var avatarId = parseInt(user.avatar_id, 10);
-    if (avatarId >= 0 && avatarId < AVATARS.length) {
+    function showPreset() {
+      if (avatarId >= 0 && avatarId < AVATARS.length) {
+        img.onload = function () { img.hidden = false; };
+        img.onerror = function () { console.warn('Не найден файл аватарки:', AVATARS[avatarId]); };
+        Parakli.showAvatarPreset(img, AVATARS[avatarId]);
+      }
+    }
+    if (user.avatar_file) {            // своё фото; если не загрузилось, показываем готовую аватарку
       img.onload = function () { img.hidden = false; };
-      img.onerror = function () { console.warn('Не найден файл аватарки:', AVATARS[avatarId]); };
-      img.src = AVATARS[avatarId];
+      img.onerror = showPreset;
+      Parakli.showAvatarFile(img, user.avatar_file, showPreset);
+    } else {
+      showPreset();
     }
 
     var stats = getWeeklyStats(user.telegram_id);
