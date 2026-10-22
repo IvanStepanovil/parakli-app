@@ -19,7 +19,20 @@
       });
     });
   }
-
+// Отправка файла (multipart). Заголовок Content-Type браузер выставит сам
+  function upload(path, formData) {
+    formData.append('init_data', (tg && tg.initData) || '');
+    return fetch(API_BASE + path, {
+      method: 'POST',
+      headers: { 'ngrok-skip-browser-warning': '1' },
+      body: formData
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        if (r.ok && d && d.user) Parakli.cacheUser(d.user);
+        return { ok: r.ok, status: r.status, data: d };
+      });
+    });
+  }
   var Parakli = {
     getSession: function () {
       return call('/api/session').then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
@@ -31,7 +44,34 @@
     updateProfile: function (data) {
       return call('/api/profile', data).then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
     },
-
+// Загрузка своей аватарки (фото уже уменьшено на телефоне)
+    uploadAvatar: function (blob) {
+      var fd = new FormData();
+      fd.append('file', blob, 'avatar.jpg');
+      return upload('/api/avatar', fd);
+    },
+    // Удаление загруженного фото: пользователю возвращается его готовая аватарка
+    deleteAvatar: function () {
+      return call('/api/avatar/delete').then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
+    },
+    // Показать загруженное фото в <img>. Грузим через fetch (так работает и туннель ngrok), браузер кэширует файл
+    showAvatarFile: function (img, file, onFail) {
+      var req = img._req = (img._req || 0) + 1;
+      fetch(API_BASE + '/avatars/' + encodeURIComponent(file), { headers: { 'ngrok-skip-browser-warning': '1' } })
+        .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.blob(); })
+        .then(function (b) {
+          if (img._req !== req) return;                 // за это время выбрали другую картинку
+          if (img._objUrl) URL.revokeObjectURL(img._objUrl);
+          img._objUrl = URL.createObjectURL(b);
+          img.src = img._objUrl;
+        })
+        .catch(function () { if (img._req === req && onFail) onFail(); });
+    },
+    // Показать обычную картинку (готовая аватарка или предпросмотр выбранного фото)
+    showAvatarPreset: function (img, src) {
+      img._req = (img._req || 0) + 1;                   // отменяет незавершённую загрузку фото с сервера
+      img.src = src;
+    },
     // Копия профиля на устройстве: страницы показывают имя и аватарку сразу, а свежие данные подтягиваются в фоне
     cacheUser: function (user) { try { localStorage.setItem('parakli_user_v1', JSON.stringify(user)); } catch (e) {} },
     cachedUser: function () {
