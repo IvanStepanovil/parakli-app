@@ -349,7 +349,8 @@
       last_name: $('last_name').value.trim(),
       phone: $('prefix').textContent + $('phone').value.replace(/\D/g, ''),
       email: $('email').value.trim(),
-      city: $('city').value.trim()
+      city: $('city').value.trim(),
+      ads_consent: $('ads').checked   // согласие на рекламную рассылку: true / false
     }).then(function (r) {
       if (r.ok || r.status === 409) { Parakli.markVerified(); goMain(); return; }
       sending = false; validate(false);
