@@ -362,7 +362,7 @@
     Parakli.deleteAccount().then(function (r) {
       if (r.ok) { location.replace(REGISTER_PAGE + location.search); return; }
       confirmBtn.disabled = false;
-      $('deleteErr').textContent = 'Не удалось удалить аккаунт. Попробуйте ещё раз.';
+      $('deleteErr').textContent = 'Не удалось удалить аккаунт. Попробуйте ещё раз. (код ' + r.status + ')';
     }).catch(function () {
       confirmBtn.disabled = false;
       $('deleteErr').textContent = 'Нет связи с сервером. Попробуйте ещё раз.';
