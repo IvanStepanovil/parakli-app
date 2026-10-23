@@ -54,6 +54,16 @@
     deleteAvatar: function () {
       return call('/api/avatar/delete').then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
     },
+    // Удаление аккаунта: при успехе стираем копию профиля на устройстве и отметку «уже проверяли»
+    deleteAccount: function () {
+      return call('/api/account/delete').then(function (r) {
+        if (r.ok) {
+          try { localStorage.removeItem('parakli_user_v1'); } catch (e) {}
+          try { sessionStorage.removeItem('parakli_verified'); } catch (e) {}
+        }
+        return r;
+      });
+    },
     // Показать загруженное фото в <img>. Грузим через fetch (так работает и туннель ngrok), браузер кэширует файл
     showAvatarFile: function (img, file, onFail) {
       var req = img._req = (img._req || 0) + 1;
