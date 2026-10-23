@@ -122,6 +122,34 @@
   .tab.on .line { stroke: var(--gold); }
   .tab .homeline { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
 
+  /* Кнопка «Удалить аккаунт» */
+  .delete-btn {
+    display: block; width: 100%; margin-top: 26px; padding: 14px;
+    border-radius: 22px; text-align: center; font-size: 15px;
+    color: #b3402f; background: rgba(255,251,244,.6);
+    box-shadow: inset 0 0 0 1px rgba(179,64,47,.35);
+  }
+
+  /* Окно подтверждения */
+  .overlay {
+    position: fixed; inset: 0; z-index: 50; display: none;
+    align-items: center; justify-content: center; padding: 20px;
+    background: rgba(28,21,16,.45);
+  }
+  .overlay.open { display: flex; }
+  .dialog {
+    width: 100%; max-width: 360px; padding: 22px 20px 18px; border-radius: 24px;
+    background: #fbf5ea; box-shadow: 0 12px 30px rgba(0,0,0,.2); text-align: center;
+  }
+  .dialog h2 { margin: 0 0 8px; font-family: var(--serif); font-weight: 600; font-size: 24px; }
+  .dialog p { margin: 0 0 18px; font-size: 14px; line-height: 1.4; color: var(--muted); }
+  .dialog .err { color: #b3402f; min-height: 1em; margin: -8px 0 10px; }
+  .dialog .btns { display: flex; gap: 10px; }
+  .dialog .btns button { flex: 1; height: 44px; border-radius: 22px; text-align: center; font-size: 16px; }
+  .dialog .cancel { background: rgba(232,214,184,.65); }
+  .dialog .confirm { color: #fff; background: #b3402f; }
+  .dialog .confirm:disabled { opacity: .6; }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -171,7 +199,23 @@
       <svg class="chev" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg>
     </button>
   </div>
+
+  <!-- Удаление аккаунта -->
+  <button class="delete-btn" id="deleteAccount" type="button">Удалить аккаунт</button>
 </main>
+
+<!-- Окно подтверждения удаления -->
+<div class="overlay" id="deleteOverlay" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
+  <div class="dialog">
+    <h2 id="deleteTitle">Удалить аккаунт?</h2>
+    <p>Все ваши данные и загруженное фото будут удалены без возможности восстановления.</p>
+    <p class="err" id="deleteErr"></p>
+    <div class="btns">
+      <button class="cancel" id="deleteCancel" type="button">Отмена</button>
+      <button class="confirm" id="deleteConfirm" type="button">Удалить</button>
+    </div>
+  </div>
+</div>
 
 <!-- Нижняя навигация -->
 <nav class="nav" aria-label="Навигация">
@@ -300,6 +344,30 @@
   function openMyData() { location.href = MYDATA_PAGE + location.search; }
   $('itemData').addEventListener('click', openMyData);
   $('editAvatar').addEventListener('click', openMyData);
+
+  /* ---------- Удаление аккаунта ---------- */
+  var REGISTER_PAGE = 'Index.html';   // страница регистрации (имя файла как в репозитории)
+  var overlay = $('deleteOverlay'), confirmBtn = $('deleteConfirm');
+
+  function openDelete() { $('deleteErr').textContent = ''; overlay.classList.add('open'); }
+  function closeDelete() { if (!confirmBtn.disabled) overlay.classList.remove('open'); }
+
+  $('deleteAccount').addEventListener('click', openDelete);
+  $('deleteCancel').addEventListener('click', closeDelete);
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) closeDelete(); });
+
+  confirmBtn.addEventListener('click', function () {
+    confirmBtn.disabled = true;
+    $('deleteErr').textContent = '';
+    Parakli.deleteAccount().then(function (r) {
+      if (r.ok) { location.replace(REGISTER_PAGE + location.search); return; }
+      confirmBtn.disabled = false;
+      $('deleteErr').textContent = 'Не удалось удалить аккаунт. Попробуйте ещё раз.';
+    }).catch(function () {
+      confirmBtn.disabled = false;
+      $('deleteErr').textContent = 'Нет связи с сервером. Попробуйте ещё раз.';
+    });
+  });
 })();
 </script>
 </body>
