@@ -2,22 +2,19 @@
   {
     "name": "Мяч 4 см",
     "description": "Компактный и универсальный.",
-    "price": 490,
     "image": "Фото/Мяч 4см.png",
-    "url": ""
+    "url": "https://www.wildberries.ru/catalog/1909585178/detail.aspx"
   },
   {
     "name": "Мяч 6 см",
     "description": "Для более глубокого воздействия.",
-    "price": 690,
     "image": "Фото/Мяч 6см.png",
-    "url": ""
+    "url": "https://www.wildberries.ru/catalog/1909302801/detail.aspx"
   },
   {
     "name": "Арахис",
     "description": "Для спины, шеи и всего тела.",
-    "price": 990,
     "image": "Фото/Арахис.png",
-    "url": ""
+    "url": "https://www.wildberries.ru/catalog/1912600994/detail.aspx?targetUrl=GP"
   }
 ]
