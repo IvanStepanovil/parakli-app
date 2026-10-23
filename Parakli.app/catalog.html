@@ -79,7 +79,7 @@
   .product .info { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 8px 0 6px; }
   .product .name { margin: 0; font-family: var(--serif); font-weight: 600; font-size: clamp(22px, 6.4vw, 27px); line-height: 1.05; }
   .product .desc { margin: 4px 0 0; font-size: 12.5px; line-height: 1.3; color: var(--muted); }
-  .product .price { margin: 8px 0 8px; font-family: var(--serif); font-weight: 600; font-size: clamp(22px, 6.4vw, 27px); color: var(--gold-dark); }
+  .product .buy { margin-top: 14px; }
 
   .buy {
     display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -186,7 +186,6 @@
     var info = el('div', 'info');
     info.appendChild(el('h3', 'name', p.name));
     if (p.description) info.appendChild(el('p', 'desc', p.description));
-    info.appendChild(el('div', 'price', Number(p.price).toLocaleString('ru-RU') + ' ₽'));
 
     var hasUrl = typeof p.url === 'string' && p.url.trim() !== '';
 
@@ -208,13 +207,13 @@
   }
 
   /* Кэш: показываем сохранённые товары сразу, свежие подгружаем в фоне */
-  var CACHE_KEY = 'parakli_products_v1';
+  var CACHE_KEY = 'parakli_products_v2';
   var shownTxt = null;
   function renderAll(data) {
     if (!Array.isArray(data)) throw new Error('format');
     var list = $('list');
     list.textContent = '';
-    data.filter(function (p) { return p && typeof p.name === 'string' && p.name.trim() && isFinite(Number(p.price)); })
+    data.filter(function (p) { return p && typeof p.name === 'string' && p.name.trim(); })
         .forEach(function (p) { list.appendChild(renderProduct(p)); });
   }
   try {
@@ -234,4 +233,3 @@
 </script>
 </body>
 </html>
-
