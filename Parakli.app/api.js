@@ -7,6 +7,13 @@
 
   var tg = window.Telegram && window.Telegram.WebApp;
 
+  // Системная кнопка в левом верхнем углу Telegram всегда остаётся «Закрыть».
+  // Telegram помнит состояние BackButton между страницами, поэтому скрываем её на каждой загрузке
+  // (и при возврате из кэша браузера). Возврат между экранами делается стрелкой «←» внутри страниц.
+  function hideTgBack() { try { if (tg && tg.BackButton) tg.BackButton.hide(); } catch (e) {} }
+  hideTgBack();
+  window.addEventListener('pageshow', hideTgBack);
+
   function call(path, body) {
     var payload = Object.assign({ init_data: (tg && tg.initData) || '' }, body || {});
     return fetch(API_BASE + path, {
@@ -53,16 +60,6 @@
     // Удаление загруженного фото: пользователю возвращается его готовая аватарка
     deleteAvatar: function () {
       return call('/api/avatar/delete').then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
-    },
-    // Удаление аккаунта: при успехе стираем копию профиля на устройстве и отметку «уже проверяли»
-    deleteAccount: function () {
-      return call('/api/account/delete').then(function (r) {
-        if (r.ok) {
-          try { localStorage.removeItem('parakli_user_v1'); } catch (e) {}
-          try { sessionStorage.removeItem('parakli_verified'); } catch (e) {}
-        }
-        return r;
-      });
     },
     // Показать загруженное фото в <img>. Грузим через fetch (так работает и туннель ngrok), браузер кэширует файл
     showAvatarFile: function (img, file, onFail) {
