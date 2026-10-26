@@ -205,7 +205,6 @@
     }
   }
   $('back').addEventListener('click', goBack);
-  if (tg && tg.BackButton) { try { tg.BackButton.show(); tg.BackButton.onClick(goBack); } catch (e) {} }
   window.addEventListener('hashchange', route);
 
   /* Запасной список: используется, если articles.json не загрузился
@@ -303,3 +302,4 @@
 </script>
 </body>
 </html>
+
