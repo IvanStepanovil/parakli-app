@@ -150,6 +150,7 @@
   /* Назад */
   function goBack() { location.href = MAIN_PAGE + location.search; }
   $('back').addEventListener('click', goBack);
+  if (tg && tg.BackButton) { try { tg.BackButton.show(); tg.BackButton.onClick(goBack); } catch (e) {} }
 
   /* Переход на маркетплейс — только если у товара задана ссылка (поле url в products.json) */
   function openProduct(url) {
