@@ -40,6 +40,10 @@
       });
     });
   }
+  var WORKOUT_QUEUE = 'parakli_workouts_queue_v1';
+  function readQueue() { try { var q = JSON.parse(localStorage.getItem(WORKOUT_QUEUE) || '[]'); return Array.isArray(q) ? q : []; } catch (e) { return []; } }
+  function writeQueue(q) { try { localStorage.setItem(WORKOUT_QUEUE, JSON.stringify(q)); } catch (e) {} }
+
   var Parakli = {
     getSession: function () {
       return call('/api/session').then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
@@ -79,6 +83,37 @@
       img._req = (img._req || 0) + 1;                   // отменяет незавершённую загрузку фото с сервера
       img.src = src;
     },
+    // Удаление аккаунта (кнопка в профиле)
+    deleteAccount: function () {
+      return call('/api/account/delete').then(function (r) {
+        if (r.ok) { try { localStorage.removeItem('parakli_user_v1'); localStorage.removeItem(WORKOUT_QUEUE); sessionStorage.removeItem('parakli_verified'); } catch (e) {} }
+        return r;
+      });
+    },
+
+    // Сохранение завершённой тренировки. Сначала кладём в очередь на устройстве, потом отправляем:
+    // если связи нет, тренировка уйдёт при следующей попытке (сервер дубли по session_id не создаёт)
+    saveWorkout: function (w) {
+      var q = readQueue().filter(function (x) { return x.session_id !== w.session_id; });
+      q.push(w); writeQueue(q);
+      return Parakli.flushWorkouts();
+    },
+    flushWorkouts: function () {
+      var q = readQueue();
+      return q.reduce(function (p, w) {
+        return p.then(function () {
+          return call('/api/workout/save', w).then(function (r) {
+            // Ушло (или сервер отклонил как неверное) — убираем из очереди; ошибка сервера/сети — оставляем
+            if (r.ok || r.status === 400) writeQueue(readQueue().filter(function (x) { return x.session_id !== w.session_id; }));
+          });
+        });
+      }, Promise.resolve()).catch(function () {});
+    },
+    // Статистика для профиля: { days: [7 чисел, секунды], this_week, prev_week }
+    getStats: function () {
+      return Parakli.flushWorkouts().then(function () { return call('/api/stats'); });
+    },
+
     // Копия профиля на устройстве: страницы показывают имя и аватарку сразу, а свежие данные подтягиваются в фоне
     cacheUser: function (user) { try { localStorage.setItem('parakli_user_v1', JSON.stringify(user)); } catch (e) {} },
     cachedUser: function () {
@@ -98,7 +133,7 @@
       if (Parakli.isVerified()) return;
       Parakli.getSession().then(function (r) {
         if (r.ok && r.data.registered) Parakli.markVerified();
-        else location.replace('index.html' + location.search);
+        else location.replace('Index.html' + location.search);
       }).catch(function () { /* нет связи — не выкидываем пользователя */ });
     }
   };
