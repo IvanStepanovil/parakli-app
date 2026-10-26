@@ -525,7 +525,6 @@
   /* ---------- Назад в профиль ---------- */
   function goBack() { location.href = PROFILE_PAGE + location.search; }
   $('back').addEventListener('click', goBack);
-  if (tg && tg.BackButton) { try { tg.BackButton.show(); tg.BackButton.onClick(goBack); } catch (e) {} }
 
   /* ---------- Загрузка данных ---------- */
   var cached = Parakli.cachedUser && Parakli.cachedUser();
@@ -548,4 +547,6 @@
 })();
 </script>
 </body>
+</html>
+
 </html>
