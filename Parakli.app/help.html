@@ -115,7 +115,7 @@
     <svg class="chev" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg>
   </button>
 
-  <!-- Телефон: на телефоне — позвонить, на компьютере — скопировать -->
+  <!-- Телефон: при нажатии копируется -->
   <a class="info glass" id="phoneBtn" href="#">
     <span class="ic"><svg viewBox="0 0 24 24"><path d="M6.6 3.5h3l1.5 4-2 1.3a11 11 0 005.1 5.1l1.3-2 4 1.5v3c0 1.1-.9 2-2 2C10.5 19.4 4.6 13.5 4.6 5.5c0-1.1.9-2 2-2z"/></svg></span>
     <span><span class="t">Телефон</span><span class="v" id="phone"></span></span>
@@ -173,10 +173,6 @@
   $('toast').addEventListener('click', hideToast);
 
   /* Телефон и почта */
-  // Телефон или планшет (Telegram сам сообщает платформу; запасной вариант — по браузеру)
-  var IS_MOBILE = !!(tg && /^(android|android_x|ios)$/.test(tg.platform || '')) ||
-                  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
   // Копирование в буфер обмена (со старым способом на случай, если новый не сработает)
   function copyText(text, okMsg) {
     function fallback() {
@@ -193,13 +189,7 @@
     } else fallback();
   }
 
-  var phoneBtn = $('phoneBtn');
-  if (IS_MOBILE) {
-    // На телефоне — обычная ссылка tel:, система сама предложит позвонить
-    phoneBtn.href = 'tel:' + SUPPORT_PHONE.replace(/[^\d+]/g, '');
-  } else {
-    phoneBtn.addEventListener('click', function (e) { e.preventDefault(); copyText(SUPPORT_PHONE, 'Номер скопирован'); });
-  }
+  $('phoneBtn').addEventListener('click', function (e) { e.preventDefault(); copyText(SUPPORT_PHONE, 'Номер скопирован'); });
   $('emailBtn').addEventListener('click', function (e) { e.preventDefault(); copyText(SUPPORT_EMAIL, 'Почта скопирована'); });
 
   /* Переход к поддержке в Telegram */
