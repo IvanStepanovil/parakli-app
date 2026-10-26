@@ -349,8 +349,7 @@
       last_name: $('last_name').value.trim(),
       phone: $('prefix').textContent + $('phone').value.replace(/\D/g, ''),
       email: $('email').value.trim(),
-      city: $('city').value.trim(),
-      ads_consent: $('ads').checked   // согласие на рекламную рассылку: true / false
+      city: $('city').value.trim()
     }).then(function (r) {
       if (r.ok || r.status === 409) { Parakli.markVerified(); goMain(); return; }
       sending = false; validate(false);
@@ -424,7 +423,6 @@
     docModal.hidden = false;
     document.documentElement.classList.add('noscroll');
     requestAnimationFrame(function () { docModal.classList.add('open'); });
-    if (tg && tg.BackButton) { try { tg.BackButton.onClick(closeDoc); tg.BackButton.show(); } catch (e) {} }
     $('docOk').focus();
   }
 
@@ -432,7 +430,6 @@
     if (docModal.hidden) return;
     docModal.classList.remove('open');
     document.documentElement.classList.remove('noscroll');
-    if (tg && tg.BackButton) { try { tg.BackButton.offClick(closeDoc); tg.BackButton.hide(); } catch (e) {} }
     docTimer = setTimeout(function () { docModal.hidden = true; }, 230);
     if (docOpener && docOpener.focus) docOpener.focus();
   }
@@ -458,3 +455,4 @@
 </script>
 </body>
 </html>
+
