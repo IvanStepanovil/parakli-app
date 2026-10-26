@@ -248,10 +248,20 @@
 
   var $ = function (id) { return document.getElementById(id); };
 
-  // Статистика: базы тренировок пока нет, поэтому нули. Позже заменить на запрос к серверу
-  // с тем же форматом: days — ровно 7 чисел, thisWeek, prevWeek.
-  function getWeeklyStats(telegramId) {
-    return { days: [0, 0, 0, 0, 0, 0, 0], thisWeek: 0, prevWeek: 0 };
+  // Статистика восстановления: сервер присылает секунды, показываем минуты (округление до ближайшей)
+  var stats = { days: [0, 0, 0, 0, 0, 0, 0], thisWeek: 0, prevWeek: 0 };
+  var lastUser = null;
+  function toMin(sec) { return Math.round((Number(sec) || 0) / 60); }
+  function loadStats() {
+    Parakli.getStats().then(function (r) {
+      if (!r.ok || !r.data || !Array.isArray(r.data.days)) return;
+      stats = {
+        days: r.data.days.map(toMin),
+        thisWeek: toMin(r.data.this_week),
+        prevWeek: toMin(r.data.prev_week)
+      };
+      if (lastUser) render(lastUser);
+    }).catch(function () {});
   }
 
   function clean(v) { return typeof v === 'string' ? v.trim() : ''; }
@@ -286,7 +296,7 @@
       showPreset();
     }
 
-    var stats = getWeeklyStats(user.telegram_id);
+    lastUser = user;
     var days = (stats.days || []).slice(0, 7);
     while (days.length < 7) days.push(0);
 
@@ -328,10 +338,11 @@
   // Сначала показываем сохранённую на устройстве копию профиля, свежие данные подтягиваются следом
   var cachedUser = Parakli.cachedUser && Parakli.cachedUser();
   if (cachedUser) render(cachedUser);
+  loadStats();
 
   Parakli.getSession().then(function (r) {
     if (r.ok && r.data.registered) { Parakli.markVerified(); render(r.data.user); }
-    else location.replace('index.html' + location.search);
+    else location.replace('Index.html' + location.search);
   }).catch(function () {
     if (!cachedUser) render({});
   });
