@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Восстановление — Паракли</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="api.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1c1510;
+    --muted: #8a7a68;
+    --gold: #b98a52;
+    --gold-dark: #8c6330;
+    --serif: "Cormorant Garamond", "Times New Roman", serif;
+    --sans: "Jost", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: calc(env(safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+    --brown: linear-gradient(135deg, #b48a5c 0%, #9a7148 55%, #84603c 100%);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; min-height: 100dvh;
+    font-family: var(--sans); color: var(--ink);
+    background-color: #f1e4cf;
+    background-size: cover; background-position: center top;
+    background-repeat: no-repeat; background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; text-align: left; }
+  button:focus-visible { outline: 3px solid rgba(185,138,82,.55); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  .scr { max-width: 480px; margin: 0 auto; padding: calc(var(--safe-t) + 8px) 14px calc(var(--safe-b) + 24px); }
+
+  .back { width: 40px; height: 40px; display: grid; place-items: center; margin-left: -8px; flex: none; }
+  .back svg { width: 24px; height: 24px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  h1 { margin: 2px 0 4px; font-family: var(--serif); font-weight: 500; font-size: clamp(36px, 11vw, 48px); line-height: 1.05; letter-spacing: -.01em; }
+  .sub { margin: 0 0 16px; font-size: 15px; color: var(--muted); }
+  #scrSetup h1 { font-size: clamp(30px, 9vw, 40px); white-space: nowrap; }
+  h2 { margin: 18px 0 10px; font-family: var(--serif); font-weight: 600; font-size: clamp(21px, 6vw, 24px); }
+
+  /* Заглушка фото: пока файла нет, видна мягкая бежевая заливка. Фото кладётся поверх неё */
+  .ph {
+    background-color: #e3cdaa;
+    background-image: radial-gradient(120% 80% at 80% 10%, rgba(255,255,255,.55), transparent 60%),
+                      linear-gradient(160deg, #eedcc0 0%, #dcc19a 55%, #c9a87b 100%);
+    background-size: cover; background-position: center;
+  }
+
+  .glass {
+    background: rgba(255,251,244,.78);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 6px 16px rgba(120,88,40,.10), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+
+  /* ---------- Экран 1: выбор зоны ---------- */
+  .zones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .zone { position: relative; aspect-ratio: 1.25; border-radius: 18px; overflow: hidden; box-shadow: 0 6px 14px rgba(120,88,40,.12); }
+  .zone.wide { grid-column: 1 / -1; aspect-ratio: 2.7; }
+  .zone .plate {
+    position: absolute; left: 6px; right: 6px; bottom: 6px; height: 34px; padding: 0 10px 0 12px;
+    display: flex; align-items: center; justify-content: space-between; border-radius: 12px;
+    background: rgba(255,251,244,.86); font-family: var(--serif); font-weight: 600; font-size: 17px;
+  }
+  .zone .plate svg { width: 14px; height: 14px; stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- Экран 2: настройка ---------- */
+  .durs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .dur { height: 84px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .dur b { font-family: var(--serif); font-weight: 500; font-size: 34px; line-height: 1; }
+  .dur span { margin-top: 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .dur.on { background: var(--brown); color: #fff; box-shadow: 0 6px 14px rgba(120,80,30,.25); }
+  .dur.on span { color: rgba(255,255,255,.85); }
+
+  .levels { display: flex; flex-direction: column; gap: 8px; }
+  .level { display: flex; align-items: center; gap: 14px; height: 62px; padding: 0 16px; border-radius: 16px; width: 100%; }
+  .level .dot { flex: none; width: 24px; height: 24px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--gold-dark); display: grid; place-items: center; }
+  .level.on .dot::after { content: ""; width: 12px; height: 12px; border-radius: 50%; background: var(--gold-dark); }
+  .level.on { background: rgba(232,214,184,.8); }
+  .level b { display: block; font-family: var(--serif); font-weight: 600; font-size: 19px; line-height: 1.1; }
+  .level small { display: block; font-size: 12.5px; color: var(--muted); }
+
+  .tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tool { border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; text-align: center; }
+  .tool .pic { aspect-ratio: 1; }
+  .tool span { padding: 8px 4px 10px; font-family: var(--serif); font-weight: 600; font-size: 15px; }
+  .tool.on { box-shadow: 0 0 0 2px var(--gold-dark), 0 6px 14px rgba(120,80,30,.2); background: rgba(232,214,184,.9); }
+
+  .main-btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 56px;
+    border-radius: 28px; background: var(--brown); color: #fff; font-size: 16px; text-align: center;
+    box-shadow: 0 8px 20px rgba(120,80,30,.28);
+  }
+  .main-btn svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .start-wrap { position: sticky; bottom: calc(var(--safe-b) + 12px); margin-top: 22px; }
+
+  /* ---------- Экран 3: тренировка ---------- */
+  .wtop { display: flex; align-items: center; gap: 8px; }
+  .bar { flex: 1; display: flex; gap: 4px; }
+  .seg { flex: 1; height: 4px; border-radius: 2px; background: rgba(140,99,48,.2); overflow: hidden; }
+  .seg i { display: block; height: 100%; background: var(--gold-dark); transform-origin: left; transform: scaleX(0); }
+  .count { margin: 8px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
+  .wtitle { margin: 2px 0 12px; text-align: center; font-size: clamp(30px, 9vw, 40px); }
+  .demo { display: inline-block; vertical-align: middle; margin-left: 6px; padding: 2px 8px; border-radius: 10px; font-family: var(--sans); font-size: 11px; letter-spacing: .05em; color: var(--gold-dark); background: rgba(232,214,184,.8); }
+
+  .wphoto { position: relative; height: clamp(320px, 56vh, 520px); border-radius: 22px; overflow: hidden; box-shadow: 0 8px 20px rgba(120,88,40,.15); }
+  .timer { position: absolute; left: 50%; bottom: 88px; width: 150px; height: 150px; transform: translateX(-50%); border-radius: 50%; background: rgba(28,21,16,.22); }
+  .timer svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .timer circle { fill: none; stroke-width: 5; }
+  .timer .track { stroke: rgba(255,255,255,.3); }
+  .timer .arc { stroke: #fff; stroke-linecap: round; }
+  .timer .time { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 34px; font-weight: 400; letter-spacing: .02em; font-variant-numeric: tabular-nums; text-shadow: 0 1px 6px rgba(0,0,0,.25); }
+  .rbtn { position: absolute; bottom: 22px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,251,244,.35); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.6); }
+  .rbtn svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .rbtn:disabled { opacity: .35; cursor: default; }
+  #prevBtn { left: 16px; } #nextBtn { right: 16px; }
+  #pauseBtn { left: 50%; bottom: 18px; width: 54px; height: 54px; transform: translateX(-50%); background: rgba(255,251,244,.92); }
+  #pauseBtn svg { stroke: var(--ink); fill: var(--ink); stroke-width: 0; width: 20px; height: 20px; }
+
+  .wnote { margin-top: 12px; padding: 16px 18px; border-radius: 20px; text-align: center; }
+  .wnote p { margin: 0; font-size: 15px; line-height: 1.4; }
+  .wnote .nextline { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; font-size: 13.5px; color: var(--muted); }
+  .wnote .nextline svg { width: 18px; height: 18px; stroke: var(--gold-dark); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- Экран 4: завершение ---------- */
+  .done h1 { margin-top: 18px; text-align: center; font-size: clamp(40px, 12vw, 52px); }
+  .sum { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 18px; padding: 18px 6px; border-radius: 22px; }
+  .sum div { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; }
+  .sum div + div { border-left: 1px solid rgba(140,99,48,.2); }
+  .sum svg { width: 28px; height: 28px; stroke: var(--gold-dark); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .sum b { margin-top: 4px; font-size: 22px; font-weight: 500; }
+  .sum span { font-size: 13px; color: var(--muted); }
+  .motiv { margin-top: 14px; min-height: 170px; padding: 22px; border-radius: 22px; display: flex; align-items: center; box-shadow: 0 8px 20px rgba(120,88,40,.15); }
+  .motiv.ph { background-image: linear-gradient(180deg, #f7e2c6 0%, #e9c39a 45%, #b98a62 100%); }
+  .motiv p { margin: 0; font-family: var(--serif); font-weight: 600; font-size: clamp(22px, 6.6vw, 27px); line-height: 1.2; }
+  .ghost-btn { display: block; width: 100%; height: 52px; margin-top: 10px; border-radius: 26px; text-align: center; font-size: 16px; background: rgba(255,251,244,.7); box-shadow: inset 0 0 0 1px rgba(140,99,48,.35); }
+  .done .main-btn { margin-top: 16px; }
+
+  /* Уведомление и окно подтверждения */
+  .toast {
+    position: fixed; left: 50%; bottom: calc(var(--safe-b) + 90px); z-index: 60;
+    width: calc(100% - 32px); max-width: 420px; padding: 14px 18px; border-radius: 18px;
+    text-align: center; font-size: 14.5px; background: rgba(255,251,244,.97);
+    box-shadow: 0 10px 28px rgba(90,60,20,.25), inset 0 0 0 1px rgba(185,138,82,.35);
+    opacity: 0; transform: translate(-50%, 12px); pointer-events: none; transition: opacity .25s, transform .25s;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .overlay { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 20px; background: rgba(28,21,16,.45); }
+  .overlay.open { display: flex; }
+  .dialog { width: 100%; max-width: 360px; padding: 22px 20px 18px; border-radius: 24px; background: #fbf5ea; box-shadow: 0 12px 30px rgba(0,0,0,.2); text-align: center; }
+  .dialog p { margin: 0 0 18px; font-size: 15px; line-height: 1.4; }
+  .dialog .btns { display: flex; flex-direction: column; gap: 8px; }
+  .dialog .btns button { height: 46px; border-radius: 23px; text-align: center; font-size: 15.5px; }
+  .dialog .stay { color: #fff; background: var(--brown); }
+  .dialog .leave { background: rgba(232,214,184,.65); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<!-- ===== Экран 1. Выбор зоны ===== -->
+<main class="scr" id="scrZone" hidden>
+  <button class="back" id="zoneBack" type="button" aria-label="На главную"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <h1>Выберите зону</h1>
+  <p class="sub">С чем поработаем сегодня?</p>
+  <div class="zones" id="zones"></div>
+</main>
+
+<!-- ===== Экран 2. Настройка тренировки ===== -->
+<main class="scr" id="scrSetup" hidden>
+  <button class="back" id="setupBack" type="button" aria-label="Назад к выбору зоны"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <h1>Настроим тренировку</h1>
+
+  <h2>Длительность</h2>
+  <div class="durs" id="durs"></div>
+
+  <h2>Уровень нагрузки</h2>
+  <div class="levels" id="levels"></div>
+
+  <h2>Инструмент</h2>
+  <div class="tools" id="tools"></div>
+
+  <div class="start-wrap">
+    <button class="main-btn" id="startBtn" type="button">Начать тренировку <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  </div>
+</main>
+
+<!-- ===== Экран 3. Тренировка ===== -->
+<main class="scr" id="scrWork" hidden>
+  <div class="wtop">
+    <button class="back" id="workBack" type="button" aria-label="Выйти из тренировки"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="bar" id="bar"></div>
+  </div>
+  <p class="count" id="wcount"></p>
+  <h1 class="wtitle"><span id="wtitle"></span><span class="demo" id="wdemo" hidden>Демо</span></h1>
+
+  <div class="wphoto ph" id="wphoto">
+    <div class="timer">
+      <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/><circle class="arc" id="arc" cx="50" cy="50" r="45"/></svg>
+      <div class="time" id="wtime">01:00</div>
+    </div>
+    <button class="rbtn" id="prevBtn" type="button" aria-label="Предыдущее упражнение"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="rbtn" id="pauseBtn" type="button" aria-label="Пауза"><svg viewBox="0 0 24 24" id="pauseIcon"></svg></button>
+    <button class="rbtn" id="nextBtn" type="button" aria-label="Следующий этап"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+
+  <div class="wnote glass">
+    <p id="wtext"></p>
+    <p class="nextline"><svg viewBox="0 0 24 24"><path d="M5 9h11v5a5 5 0 01-5 5h-1a5 5 0 01-5-5V9z"/><path d="M16 11h1.5a2.5 2.5 0 010 5H16"/><path d="M8 3.5v2M11 3.5v2M14 3.5v2"/></svg><span id="wnext"></span></p>
+  </div>
+</main>
+
+<!-- ===== Экран 4. Завершение ===== -->
+<main class="scr done" id="scrDone" hidden>
+  <h1>Тренировка<br>завершена!</h1>
+  <div class="sum glass">
+    <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.2 2"/></svg><b id="dMin">0</b><span id="dMinL">минут</span></div>
+    <div><svg viewBox="0 0 24 24"><path d="M3 9c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/></svg><b id="dEx">0</b><span id="dExL">упражнений</span></div>
+    <div><svg viewBox="0 0 24 24"><path d="M5 20v-4M10 20v-8M15 20v-12M20 20V4"/></svg><b id="dLvl"></b><span>уровень</span></div>
+  </div>
+  <div class="motiv ph" id="motiv"><p>Ты молодец!<br>Это важный шаг<br>заботы о себе.</p></div>
+  <button class="main-btn" id="againBtn" type="button">К новой тренировке <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  <button class="ghost-btn" id="homeBtn" type="button">На главную</button>
+</main>
+
+<div class="overlay" id="exitOverlay" role="dialog" aria-modal="true">
+  <div class="dialog">
+    <p>Вы хотите выйти из тренировки? Незавершённая тренировка не будет сохранена как завершённая.</p>
+    <div class="btns">
+      <button class="stay" id="exitStay" type="button">Продолжить тренировку</button>
+      <button class="leave" id="exitLeave" type="button">Выйти</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  /* ================= НАСТРОЙКИ ================= */
+  var MAIN_PAGE = 'main.html';
+  var EXERCISES_URL = 'exercises.json';   // библиотека упражнений по зонам
+  var EXERCISE_SEC = 60;                  // длительность одного упражнения
+
+  // Картинки. Пустая строка '' — показывается бежевая заглушка.
+  // Чтобы подключить фото, положите файл в папку «Фото» и впишите путь, например 'Фото/Зона шея.png'
+  var SCREEN_BACKGROUND = 'Фото/Фон главного экрана.png';   // общий фон всех экранов раздела
+  var ZONE_IMAGES = {
+    neck: '', back: '', face: '', arms: '', calves: '', thighs: '', feet: ''
+  };
+  var TOOL_IMAGES = {
+    ball4: 'Фото/Мяч 4см.png', ball6: 'Фото/Мяч 6см.png', peanut: 'Фото/Арахис.png'
+  };
+  var REST_IMAGE = '';         // фото на экране отдыха
+  var COMPLETION_IMAGE = '';   // фон карточки «Ты молодец!»
+
+  var ZONES = [
+    { id: 'neck', name: 'Шея и плечи' }, { id: 'back', name: 'Спина' },
+    { id: 'face', name: 'Лицо' },        { id: 'arms', name: 'Руки' },
+    { id: 'calves', name: 'Икры' },      { id: 'thighs', name: 'Бёдра' },
+    { id: 'feet', name: 'Стопы' }
+  ];
+  var DURATIONS = [5, 10, 15];   // минут = количество упражнений
+  var LEVELS = [
+    { id: 'light',   name: 'Лёгкий',      hint: 'Мягкое расслабление', rest: 30 },
+    { id: 'intense', name: 'Интенсивный', hint: 'Глубокая проработка', rest: 10 }
+  ];
+  var TOOLS = [
+    { id: 'ball4', name: 'Мяч 4 см' }, { id: 'ball6', name: 'Мяч 6 см' }, { id: 'peanut', name: 'Арахис' }
+  ];
+  /* ============================================== */
+
+  var SETUP_KEY = 'parakli_rec_setup_v1';      // выбранные настройки
+  var SESSION_KEY = 'parakli_rec_session_v1';  // незавершённая тренировка (на случай перезагрузки)
+
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f1e4cf'); tg.setBackgroundColor('#f1e4cf'); } catch (e) {} }
+  Parakli.guard();
+
+  var $ = function (id) { return document.getElementById(id); };
+  function find(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
+  function setImg(el, path) { if (path) el.style.backgroundImage = 'url("' + encodeURI(path) + '"), ' + getComputedStyle(el).backgroundImage; }
+  function load(key) { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; } }
+  function store(key, v) { try { if (v == null) localStorage.removeItem(key); else localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
+  function plural(n, f) { n = Math.abs(n) % 100; var d = n % 10; if (n > 10 && n < 20) return f[2]; if (d === 1) return f[0]; if (d >= 2 && d <= 4) return f[1]; return f[2]; }
+  function newId() {   // 32 случайных шестнадцатеричных символа
+    var a = new Uint8Array(16); crypto.getRandomValues(a);
+    return Array.prototype.map.call(a, function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+  }
+  if (SCREEN_BACKGROUND) document.body.style.backgroundImage = 'url("' + encodeURI(SCREEN_BACKGROUND) + '")';
+
+  var toastTimer;
+  function toast(text) {
+    var t = $('toast'); t.textContent = text; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3000);
+  }
+
+  function show(id) {
+    ['scrZone', 'scrSetup', 'scrWork', 'scrDone'].forEach(function (s) { $(s).hidden = s !== id; });
+    window.scrollTo(0, 0);
+    try { if (tg) { if (id === 'scrWork') tg.enableClosingConfirmation(); else tg.disableClosingConfirmation(); } } catch (e) {}
+  }
+
+  /* ---------- Библиотека упражнений ---------- */
+  var library = null;
+  function loadLibrary() {
+    return fetch(EXERCISES_URL, { cache: 'no-cache' })
+      .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (d) { library = d; return d; });
+  }
+  loadLibrary().catch(function (e) { console.warn('Упражнения не загружены:', e); });
+
+  // Упражнения для зоны, подходящие под массажёр и нагрузку. Порядок — как в файле,
+  // если их меньше, чем нужно, список повторяется по кругу. Нет подходящих — null.
+  function buildExercises(zone, tool, level, count) {
+    var all = (library && library[zone]) || [];
+    var fit = all.filter(function (e) {
+      return e && typeof e.name === 'string' && e.name.trim() &&
+        (!e.tools || !e.tools.length || e.tools.indexOf(tool) >= 0) &&
+        (!e.levels || !e.levels.length || e.levels.indexOf(level) >= 0);
+    });
+    if (!fit.length) return null;
+    var out = [];
+    for (var i = 0; i < count; i++) {
+      var e = fit[i % fit.length];
+      out.push({ name: e.name, text: e.text || '', image: e.image || '', demo: !!e.demo });
+    }
+    return out;
+  }
+
+  /* ---------- Экран 1: зоны ---------- */
+  var setup = load(SETUP_KEY) || {};
+  if (DURATIONS.indexOf(setup.duration) < 0) setup.duration = 5;
+  if (!find(LEVELS, setup.level)) setup.level = 'light';
+  function saveSetup() { store(SETUP_KEY, setup); }
+
+  ZONES.forEach(function (z, i) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'zone ph' + (i === ZONES.length - 1 ? ' wide' : '');
+    b.innerHTML = '<span class="plate"><span></span><svg viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg></span>';
+    b.querySelector('.plate span').textContent = z.name;
+    $('zones').appendChild(b);
+    setImg(b, ZONE_IMAGES[z.id]);
+    b.addEventListener('click', function () {
+      setup.zone = z.id; saveSetup();
+      renderSetup(); show('scrSetup');
+    });
+  });
+  $('zoneBack').addEventListener('click', function () { location.href = MAIN_PAGE + location.search; });
+
+  /* ---------- Экран 2: настройка ---------- */
+  DURATIONS.forEach(function (d) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'dur glass'; b.dataset.v = d;
+    b.innerHTML = '<b>' + d + '</b><span>минут</span>';
+    b.addEventListener('click', function () { setup.duration = d; saveSetup(); renderSetup(); });
+    $('durs').appendChild(b);
+  });
+  LEVELS.forEach(function (l) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'level glass'; b.dataset.v = l.id;
+    b.innerHTML = '<span class="dot"></span><span><b></b><small></small></span>';
+    b.querySelector('b').textContent = l.name;
+    b.querySelector('small').textContent = l.hint;
+    b.addEventListener('click', function () { setup.level = l.id; saveSetup(); renderSetup(); });
+    $('levels').appendChild(b);
+  });
+  TOOLS.forEach(function (t) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'tool glass'; b.dataset.v = t.id;
+    b.innerHTML = '<div class="pic ph"></div><span></span>';
+    b.querySelector('span').textContent = t.name;
+    b.addEventListener('click', function () { setup.tool = t.id; saveSetup(); renderSetup(); });
+    $('tools').appendChild(b);
+    setImg(b.querySelector('.pic'), TOOL_IMAGES[t.id]);
+  });
+  function renderSetup() {
+    [['durs', setup.duration], ['levels', setup.level], ['tools', setup.tool]].forEach(function (g) {
+      Array.prototype.forEach.call($(g[0]).children, function (b) {
+        var on = String(g[1]) === b.dataset.v;
+        b.classList.toggle('on', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    });
+  }
+  $('setupBack').addEventListener('click', function () { show('scrZone'); });
+
+  $('startBtn').addEventListener('click', function () {
+    if (!find(ZONES, setup.zone)) { toast('Выберите зону тела'); show('scrZone'); return; }
+    if (DURATIONS.indexOf(setup.duration) < 0) { toast('Выберите длительность'); return; }
+    if (!find(LEVELS, setup.level)) { toast('Выберите уровень нагрузки'); return; }
+    if (!find(TOOLS, setup.tool)) { toast('Выберите инструмент'); return; }
+    var btn = $('startBtn');
+    btn.disabled = true;
+    (library ? Promise.resolve(library) : loadLibrary()).then(function () {
+      btn.disabled = false;
+      var list = buildExercises(setup.zone, setup.tool, setup.level, setup.duration);
+      if (!list) { toast('Для выбранной комбинации пока нет доступной тренировки. Попробуйте изменить настройки.'); return; }
+      startSession(list);
+    }).catch(function () { btn.disabled = false; toast('Не удалось загрузить упражнения. Проверьте интернет.'); });
+  });
+
+  /* ---------- Экран 3: тренировка ----------
+     Состояние одной тренировки (S):
+       phase      — 'exercise' (упражнение) | 'rest' (отдых) | 'done' (завершена)
+       paused     — стоит ли на паузе
+       idx        — номер текущего упражнения (с 0)
+       left/len   — сколько осталось и сколько всего длится текущий этап, мс
+       exSec[i]   — сколько секунд упражнения i реально выполнено (не больше 60)
+       doneEx[i]  — упражнение i доведено до конца
+       restSec    — сколько секунд длился отдых
+     Таймер один на всю страницу: время считается по реально прошедшему (performance.now),
+     на паузе и в свёрнутом приложении не идёт. */
+  var S = null;
+  var C = 2 * Math.PI * 45;   // длина окружности таймера
+  $('arc').style.strokeDasharray = C;
+
+  function restMs() { return find(LEVELS, S.level).rest * 1000; }
+  function persist() { store(SESSION_KEY, S); }
+
+  function startSession(list) {
+    S = {
+      id: newId(), zone: setup.zone, duration: setup.duration, level: setup.level, tool: setup.tool,
+      list: list, planned: list.length, idx: 0, phase: 'exercise', paused: false,
+      left: EXERCISE_SEC * 1000, len: EXERCISE_SEC * 1000,
+      exSec: list.map(function () { return 0; }), doneEx: list.map(function () { return false; }),
+      restSec: 0, startedAt: Date.now(), elapsedSec: 0, finishedAt: null
+    };
+    buildBar();
+    show('scrWork');
+    goExercise(0);
+  }
+
+  function buildBar() {
+    var bar = $('bar'); bar.textContent = '';
+    bar.style.gap = S.planned > 10 ? '3px' : '4px';
+    for (var i = 0; i < S.planned; i++) { var s = document.createElement('div'); s.className = 'seg'; s.appendChild(document.createElement('i')); bar.appendChild(s); }
+  }
+
+  function goExercise(i) {
+    S.idx = i; S.phase = 'exercise'; S.paused = false;
+    S.left = S.len = EXERCISE_SEC * 1000;
+    renderStage(); persist();
+  }
+  function goRest() {
+    S.phase = 'rest'; S.paused = false;
+    S.left = S.len = restMs();
+    renderStage(); persist();
+  }
+  function finish() {
+    S.phase = 'done'; S.paused = true; S.finishedAt = Date.now();
+    persist();
+    saveResult();
+    renderDone();
+    show('scrDone');
+  }
+
+  // Этап закончился сам (таймер дошёл до 00:00)
+  function stageEnded() {
+    if (S.phase === 'exercise') {
+      S.doneEx[S.idx] = true; S.exSec[S.idx] = EXERCISE_SEC;
+      if (S.idx >= S.planned - 1) finish(); else goRest();
+    } else if (S.phase === 'rest') {
+      goExercise(S.idx + 1);
+    }
+  }
+
+  // Стрелка вправо: из упражнения — к отдыху (или к завершению), из отдыха — к следующему упражнению
+  $('nextBtn').addEventListener('click', function () {
+    if (!S || S.phase === 'done') return;
+    if (S.phase === 'exercise') { if (S.idx >= S.planned - 1) finish(); else goRest(); }
+    else goExercise(S.idx + 1);
+  });
+  // Стрелка влево: к предыдущему упражнению (из отдыха — к только что сделанному)
+  $('prevBtn').addEventListener('click', function () {
+    if (!S || S.phase === 'done') return;
+    if (S.phase === 'rest') goExercise(S.idx);
+    else if (S.idx > 0) goExercise(S.idx - 1);
+  });
+
+  function setPaused(p) {
+    if (!S || S.phase === 'done') return;
+    S.paused = p; renderPause(); persist();
+  }
+  $('pauseBtn').addEventListener('click', function () { setPaused(!S.paused); });
+
+  function renderPause() {
+    $('pauseIcon').innerHTML = S.paused ? '<path d="M8 5.5v13l11-6.5z"/>' : '<rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/>';
+    $('pauseBtn').setAttribute('aria-label', S.paused ? 'Продолжить' : 'Пауза');
+  }
+
+  function renderStage() {
+    var ex = S.list[S.idx], last = S.idx >= S.planned - 1;
+    var photo = $('wphoto');
+    photo.style.backgroundImage = '';
+    if (S.phase === 'exercise') {
+      $('wcount').textContent = 'Упражнение ' + (S.idx + 1) + ' из ' + S.planned;
+      $('wtitle').textContent = ex.name;
+      $('wdemo').hidden = !ex.demo;
+      $('wtext').textContent = (ex.text ? ex.text + ' ' : '') + 'Инструмент: ' + find(TOOLS, S.tool).name + '.';
+      $('wnext').textContent = last ? 'Далее: завершение тренировки' : 'Далее: отдых ' + (restMs() / 1000) + ' секунд';
+      setImg(photo, ex.image);
+    } else {
+      $('wcount').textContent = 'Перед упражнением ' + (S.idx + 2) + ' из ' + S.planned;
+      $('wtitle').textContent = 'Отдых';
+      $('wdemo').hidden = true;
+      $('wtext').textContent = 'Расслабьтесь и спокойно подышите.';
+      $('wnext').textContent = 'Далее: упражнение ' + (S.idx + 2);
+      setImg(photo, REST_IMAGE);
+    }
+    $('prevBtn').disabled = S.phase === 'exercise' && S.idx === 0;
+    renderPause();
+    renderTick();
+  }
+
+  function fmt(ms) { var s = Math.ceil(ms / 1000), m = Math.floor(s / 60); s %= 60; return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
+
+  // Таймер и прогресс рисуются из одного значения S.left, поэтому всегда совпадают
+  function renderTick() {
+    $('wtime').textContent = fmt(S.left);
+    $('arc').style.strokeDashoffset = C * (1 - S.left / S.len);
+    var segs = $('bar').children;
+    for (var i = 0; i < segs.length; i++) {
+      var f = i < S.idx ? 1 : i > S.idx ? 0 : (S.phase === 'rest' ? 1 : 1 - S.left / S.len);
+      segs[i].firstChild.style.transform = 'scaleX(' + f + ')';
+    }
+  }
+
+  var lastFrame = null, lastPersist = 0;
+  function frame(now) {
+    if (S && (S.phase === 'exercise' || S.phase === 'rest') && !$('scrWork').hidden) {
+      // Не больше 1 секунды за кадр: после сворачивания время не «догоняет» рывком
+      var dt = lastFrame == null ? 0 : Math.min(now - lastFrame, 1000);
+      if (!S.paused && dt > 0) {
+        var step = Math.min(dt, S.left);
+        S.left -= step;
+        S.elapsedSec += step / 1000;
+        if (S.phase === 'exercise') S.exSec[S.idx] = Math.min(EXERCISE_SEC, S.exSec[S.idx] + step / 1000);
+        else S.restSec += step / 1000;
+        if (S.left <= 0) { S.left = 0; renderTick(); stageEnded(); }
+        else renderTick();
+        if (now - lastPersist > 3000) { lastPersist = now; persist(); }
+      }
+    }
+    lastFrame = now;
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // Свернули Telegram или ушли со страницы — ставим на паузу, пользователь сам нажмёт «Продолжить»
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && S && (S.phase === 'exercise' || S.phase === 'rest') && !S.paused) setPaused(true);
+  });
+
+  /* Выход из тренировки */
+  var pausedBeforeExit = false;
+  $('workBack').addEventListener('click', function () {
+    pausedBeforeExit = S.paused; setPaused(true);
+    $('exitOverlay').classList.add('open');
+  });
+  $('exitStay').addEventListener('click', function () {
+    $('exitOverlay').classList.remove('open');
+    setPaused(pausedBeforeExit);
+  });
+  $('exitLeave').addEventListener('click', function () {
+    $('exitOverlay').classList.remove('open');
+    S = null; store(SESSION_KEY, null);
+    renderSetup(); show('scrSetup');
+  });
+
+  /* ---------- Экран 4: завершение ---------- */
+  function activeSec() { return S.exSec.reduce(function (a, b) { return a + b; }, 0); }
+  function completedCount() { return S.doneEx.filter(Boolean).length; }
+
+  function saveResult() {
+    // Отправка идёт через очередь в api.js: если нет связи, результат уйдёт при следующем открытии.
+    // Повторная отправка той же тренировки на сервере дубль не создаёт.
+    Parakli.saveWorkout({
+      session_id: S.id, zone: S.zone, duration: S.duration, level: S.level, tool: S.tool,
+      completed: completedCount(),
+      active_seconds: Math.round(activeSec()),
+      rest_seconds: Math.round(S.restSec),
+      elapsed_seconds: Math.round(S.elapsedSec)
+    });
+  }
+
+  function renderDone() {
+    var min = Math.round(activeSec() / 60), n = completedCount();
+    $('dMin').textContent = min;
+    $('dMinL').textContent = plural(min, ['минута', 'минуты', 'минут']);
+    $('dEx').textContent = n;
+    $('dExL').textContent = plural(n, ['упражнение', 'упражнения', 'упражнений']);
+    $('dLvl').textContent = find(LEVELS, S.level).name;
+  }
+  setImg($('motiv'), COMPLETION_IMAGE);
+
+  function closeSession() { S = null; store(SESSION_KEY, null); }
+  $('againBtn').addEventListener('click', function () { closeSession(); setup.zone = null; saveSetup(); show('scrZone'); });
+  $('homeBtn').addEventListener('click', function () { closeSession(); location.href = MAIN_PAGE + location.search; });
+
+  /* ---------- Старт страницы ---------- */
+  renderSetup();
+  var saved = load(SESSION_KEY);
+  if (saved && saved.list && saved.list.length && saved.phase) {
+    S = saved;
+    if (S.phase === 'done') { saveResult(); renderDone(); show('scrDone'); }
+    else {
+      // Вернулись к незавершённой тренировке — открываем её на паузе
+      S.paused = true;
+      buildBar(); show('scrWork'); renderStage();
+      toast('Тренировка на паузе. Нажмите ▶, чтобы продолжить.');
+    }
+  } else {
+    show('scrZone');
+  }
+})();
+</script>
+</body>
+</html>
