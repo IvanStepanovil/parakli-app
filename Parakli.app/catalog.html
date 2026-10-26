@@ -186,7 +186,6 @@
     var info = el('div', 'info');
     info.appendChild(el('h3', 'name', p.name));
     if (p.description) info.appendChild(el('p', 'desc', p.description));
-    info.appendChild(el('div', 'price', Number(p.price).toLocaleString('ru-RU') + ' ₽'));
 
     var hasUrl = typeof p.url === 'string' && p.url.trim() !== '';
 
@@ -214,7 +213,7 @@
     if (!Array.isArray(data)) throw new Error('format');
     var list = $('list');
     list.textContent = '';
-    data.filter(function (p) { return p && typeof p.name === 'string' && p.name.trim() && isFinite(Number(p.price)); })
+    data.filter(function (p) { return p && typeof p.name === 'string' && p.name.trim(); })
         .forEach(function (p) { list.appendChild(renderProduct(p)); });
   }
   try {
