@@ -75,6 +75,9 @@
   .info .ic svg { width: 26px; height: 26px; fill: none; stroke: var(--gold-dark); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
   .info .t { display: block; font-family: var(--serif); font-weight: 600; font-size: clamp(20px, 5.8vw, 23px); line-height: 1.1; }
   .info .v { display: block; margin-top: 4px; font-size: 14.5px; color: var(--muted); }
+  /* Телефон и почта нажимаются: звонок / копирование */
+  a.info { color: inherit; text-decoration: none; cursor: pointer; transition: transform .15s; }
+  a.info:active { transform: scale(.98); }
 
   .note { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 0 16px; height: 52px; border-radius: 18px; font-size: 13.5px; color: var(--muted); }
   .note svg { flex: none; width: 24px; height: 24px; fill: none; stroke: var(--gold-dark); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
@@ -112,17 +115,17 @@
     <svg class="chev" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg>
   </button>
 
-  <!-- Телефон: только информация (временный тестовый номер) -->
-  <div class="info glass">
+  <!-- Телефон: на телефоне — позвонить, на компьютере — скопировать -->
+  <a class="info glass" id="phoneBtn" href="#">
     <span class="ic"><svg viewBox="0 0 24 24"><path d="M6.6 3.5h3l1.5 4-2 1.3a11 11 0 005.1 5.1l1.3-2 4 1.5v3c0 1.1-.9 2-2 2C10.5 19.4 4.6 13.5 4.6 5.5c0-1.1.9-2 2-2z"/></svg></span>
     <span><span class="t">Телефон</span><span class="v" id="phone"></span></span>
-  </div>
+  </a>
 
-  <!-- E-mail: только информация (временный тестовый адрес) -->
-  <div class="info glass">
+  <!-- E-mail: при нажатии копируется -->
+  <a class="info glass" id="emailBtn" href="#">
     <span class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 7l8.5 6.5L20.5 7"/></svg></span>
     <span><span class="t">E-mail</span><span class="v" id="email"></span></span>
-  </div>
+  </a>
 
   <!-- Время ответа: только информация -->
   <div class="note glass">
@@ -168,6 +171,36 @@
   }
   function hideToast() { $('toast').classList.remove('show'); }
   $('toast').addEventListener('click', hideToast);
+
+  /* Телефон и почта */
+  // Телефон или планшет (Telegram сам сообщает платформу; запасной вариант — по браузеру)
+  var IS_MOBILE = !!(tg && /^(android|android_x|ios)$/.test(tg.platform || '')) ||
+                  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  // Копирование в буфер обмена (со старым способом на случай, если новый не сработает)
+  function copyText(text, okMsg) {
+    function fallback() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      showToast(ok ? okMsg : 'Не удалось скопировать: ' + text);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { showToast(okMsg); }, fallback);
+    } else fallback();
+  }
+
+  var phoneBtn = $('phoneBtn');
+  if (IS_MOBILE) {
+    // На телефоне — обычная ссылка tel:, система сама предложит позвонить
+    phoneBtn.href = 'tel:' + SUPPORT_PHONE.replace(/[^\d+]/g, '');
+  } else {
+    phoneBtn.addEventListener('click', function (e) { e.preventDefault(); copyText(SUPPORT_PHONE, 'Номер скопирован'); });
+  }
+  $('emailBtn').addEventListener('click', function (e) { e.preventDefault(); copyText(SUPPORT_EMAIL, 'Почта скопирована'); });
 
   /* Переход к поддержке в Telegram */
   function open_support_telegram() {
