@@ -58,8 +58,21 @@
     -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
     box-shadow: 0 6px 16px rgba(120,88,40,.10), inset 0 0 0 1px rgba(255,255,255,.7);
   }
+  .arrow { width: 14px; height: 14px; stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
-  /* ---------- Экран 1: выбор зоны ---------- */
+  /* ---------- Меню «Восстановление» ---------- */
+  .menu { display: flex; flex-direction: column; gap: 12px; }
+  .mcard { position: relative; display: block; width: 100%; aspect-ratio: 1.55; border-radius: 22px; overflow: hidden; box-shadow: 0 8px 18px rgba(120,88,40,.14); }
+  .mcard .plate {
+    position: absolute; left: 8px; right: 8px; bottom: 8px; padding: 12px 14px 12px 16px;
+    display: flex; align-items: center; gap: 12px; border-radius: 16px; background: rgba(255,251,244,.88);
+  }
+  .mcard .plate div { flex: 1; min-width: 0; }
+  .mcard b { display: block; font-family: var(--serif); font-weight: 600; font-size: clamp(24px, 7vw, 28px); line-height: 1.05; }
+  .mcard small { display: block; margin-top: 2px; font-size: 13.5px; color: var(--muted); }
+  .mcard .arrow { width: 18px; height: 18px; }
+
+  /* ---------- Энциклопедия: выбор зоны ---------- */
   .zones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .zone { position: relative; aspect-ratio: 1.25; border-radius: 18px; overflow: hidden; box-shadow: 0 6px 14px rgba(120,88,40,.12); }
   .zone.wide { grid-column: 1 / -1; aspect-ratio: 2.7; }
@@ -68,10 +81,21 @@
     display: flex; align-items: center; justify-content: space-between; border-radius: 12px;
     background: rgba(255,251,244,.86); font-family: var(--serif); font-weight: 600; font-size: 17px;
   }
-  .zone .plate svg { width: 14px; height: 14px; stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-  /* ---------- Экран 2: настройка ---------- */
-  .durs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  /* ---------- Энциклопедия: упражнения зоны ---------- */
+  .exlist { display: flex; flex-direction: column; gap: 14px; }
+  .ex { border-radius: 22px; overflow: hidden; }
+  .ex .pic { aspect-ratio: 4 / 3; }
+  .ex .pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .ex .body { padding: 14px 16px 18px; }
+  .ex h3 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: clamp(23px, 6.6vw, 27px); line-height: 1.1; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 10px; }
+  .tags span { padding: 3px 10px; border-radius: 10px; font-size: 12px; letter-spacing: .03em; color: var(--gold-dark); background: rgba(232,214,184,.8); }
+  .ex p { margin: 0; font-size: 15px; line-height: 1.5; }
+  .empty { padding: 26px 18px; border-radius: 20px; text-align: center; font-size: 15px; color: var(--muted); }
+
+  /* ---------- Настройка тренировки ---------- */
+  .durs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .dur { height: 84px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
   .dur b { font-family: var(--serif); font-weight: 500; font-size: 34px; line-height: 1; }
   .dur span { margin-top: 4px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
@@ -85,6 +109,10 @@
   .level.on { background: rgba(232,214,184,.8); }
   .level b { display: block; font-family: var(--serif); font-weight: 600; font-size: 19px; line-height: 1.1; }
   .level small { display: block; font-size: 12.5px; color: var(--muted); }
+  .level .lock { display: none; margin-left: auto; width: 18px; height: 18px; stroke: var(--muted); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .level.locked { opacity: .55; }
+  .level.locked .dot { box-shadow: inset 0 0 0 1.5px var(--muted); }
+  .level.locked .lock { display: block; }
 
   .tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .tool { border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; text-align: center; }
@@ -100,14 +128,13 @@
   .main-btn svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .start-wrap { position: sticky; bottom: calc(var(--safe-b) + 12px); margin-top: 22px; }
 
-  /* ---------- Экран 3: тренировка ---------- */
+  /* ---------- Тренировка ---------- */
   .wtop { display: flex; align-items: center; gap: 8px; }
   .bar { flex: 1; display: flex; gap: 4px; }
   .seg { flex: 1; height: 4px; border-radius: 2px; background: rgba(140,99,48,.2); overflow: hidden; }
   .seg i { display: block; height: 100%; background: var(--gold-dark); transform-origin: left; transform: scaleX(0); }
   .count { margin: 8px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
   .wtitle { margin: 2px 0 12px; text-align: center; font-size: clamp(30px, 9vw, 40px); }
-  .demo { display: inline-block; vertical-align: middle; margin-left: 6px; padding: 2px 8px; border-radius: 10px; font-family: var(--sans); font-size: 11px; letter-spacing: .05em; color: var(--gold-dark); background: rgba(232,214,184,.8); }
 
   .wphoto { position: relative; height: clamp(320px, 56vh, 520px); border-radius: 22px; overflow: hidden; box-shadow: 0 8px 20px rgba(120,88,40,.15); }
   .timer { position: absolute; left: 50%; bottom: 88px; width: 150px; height: 150px; transform: translateX(-50%); border-radius: 50%; background: rgba(28,21,16,.22); }
@@ -128,13 +155,13 @@
   .wnote .nextline { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; font-size: 13.5px; color: var(--muted); }
   .wnote .nextline svg { width: 18px; height: 18px; stroke: var(--gold-dark); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
-  /* ---------- Экран 4: завершение ---------- */
+  /* ---------- Завершение ---------- */
   .done h1 { margin-top: 18px; text-align: center; font-size: clamp(40px, 12vw, 52px); }
   .sum { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 18px; padding: 18px 6px; border-radius: 22px; }
   .sum div { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; }
   .sum div + div { border-left: 1px solid rgba(140,99,48,.2); }
   .sum svg { width: 28px; height: 28px; stroke: var(--gold-dark); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-  .sum b { margin-top: 4px; font-size: 22px; font-weight: 500; }
+  .sum b { margin-top: 4px; font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; }
   .sum span { font-size: 13px; color: var(--muted); }
   .motiv { margin-top: 14px; min-height: 170px; padding: 22px; border-radius: 22px; display: flex; align-items: center; box-shadow: 0 8px 20px rgba(120,88,40,.15); }
   .motiv.ph { background-image: linear-gradient(180deg, #f7e2c6 0%, #e9c39a 45%, #b98a62 100%); }
@@ -142,7 +169,7 @@
   .ghost-btn { display: block; width: 100%; height: 52px; margin-top: 10px; border-radius: 26px; text-align: center; font-size: 16px; background: rgba(255,251,244,.7); box-shadow: inset 0 0 0 1px rgba(140,99,48,.35); }
   .done .main-btn { margin-top: 16px; }
 
-  /* Уведомление и окно подтверждения */
+  /* Уведомление и окна */
   .toast {
     position: fixed; left: 50%; bottom: calc(var(--safe-b) + 90px); z-index: 60;
     width: calc(100% - 32px); max-width: 420px; padding: 14px 18px; border-radius: 18px;
@@ -165,46 +192,69 @@
 </head>
 <body>
 
-<!-- ===== Экран 1. Выбор зоны ===== -->
+<!-- ===== Меню «Восстановление» ===== -->
+<main class="scr" id="scrMenu" hidden>
+  <button class="back" id="menuBack" type="button" aria-label="На главную"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <h1>Восстановление</h1>
+  <p class="sub">Выберите, с чего хотите начать</p>
+  <div class="menu">
+    <button class="mcard ph" id="menuEnc" type="button">
+      <span class="plate"><div><b>Энциклопедия</b><small>Упражнения и рекомендации по восстановлению</small></div><svg class="arrow" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg></span>
+    </button>
+    <button class="mcard ph" id="menuWork" type="button">
+      <span class="plate"><div><b>Тренировки</b><small>Персональная практика с таймером</small></div><svg class="arrow" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg></span>
+    </button>
+  </div>
+</main>
+
+<!-- ===== Энциклопедия: выбор зоны ===== -->
 <main class="scr" id="scrZone" hidden>
-  <button class="back" id="zoneBack" type="button" aria-label="На главную"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <button class="back" id="zoneBack" type="button" aria-label="Назад в «Восстановление»"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
   <h1>Выберите зону</h1>
   <p class="sub">С чем поработаем сегодня?</p>
   <div class="zones" id="zones"></div>
 </main>
 
-<!-- ===== Экран 2. Настройка тренировки ===== -->
+<!-- ===== Энциклопедия: упражнения зоны ===== -->
+<main class="scr" id="scrEnc" hidden>
+  <button class="back" id="encBack" type="button" aria-label="Назад к выбору зоны"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <h1 id="encTitle"></h1>
+  <p class="sub" id="encSub"></p>
+  <div class="exlist" id="exlist"></div>
+</main>
+
+<!-- ===== Настройка тренировки ===== -->
 <main class="scr" id="scrSetup" hidden>
-  <button class="back" id="setupBack" type="button" aria-label="Назад к выбору зоны"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <button class="back" id="setupBack" type="button" aria-label="Назад в «Восстановление»"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
   <h1>Настроим тренировку</h1>
 
   <h2>Длительность</h2>
   <div class="durs" id="durs"></div>
 
-  <h2>Уровень нагрузки</h2>
-  <div class="levels" id="levels"></div>
-
-  <h2>Инструмент</h2>
+  <h2>Массажёр</h2>
   <div class="tools" id="tools"></div>
+
+  <h2>Режим нагрузки</h2>
+  <div class="levels" id="levels"></div>
 
   <div class="start-wrap">
     <button class="main-btn" id="startBtn" type="button">Начать тренировку <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
   </div>
 </main>
 
-<!-- ===== Экран 3. Тренировка ===== -->
+<!-- ===== Тренировка ===== -->
 <main class="scr" id="scrWork" hidden>
   <div class="wtop">
     <button class="back" id="workBack" type="button" aria-label="Выйти из тренировки"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
     <div class="bar" id="bar"></div>
   </div>
   <p class="count" id="wcount"></p>
-  <h1 class="wtitle"><span id="wtitle"></span><span class="demo" id="wdemo" hidden>Демо</span></h1>
+  <h1 class="wtitle" id="wtitle"></h1>
 
   <div class="wphoto ph" id="wphoto">
     <div class="timer">
       <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/><circle class="arc" id="arc" cx="50" cy="50" r="45"/></svg>
-      <div class="time" id="wtime">01:00</div>
+      <div class="time" id="wtime">00:50</div>
     </div>
     <button class="rbtn" id="prevBtn" type="button" aria-label="Предыдущее упражнение"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
     <button class="rbtn" id="pauseBtn" type="button" aria-label="Пауза"><svg viewBox="0 0 24 24" id="pauseIcon"></svg></button>
@@ -217,13 +267,13 @@
   </div>
 </main>
 
-<!-- ===== Экран 4. Завершение ===== -->
+<!-- ===== Завершение ===== -->
 <main class="scr done" id="scrDone" hidden>
   <h1>Тренировка<br>завершена!</h1>
   <div class="sum glass">
-    <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.2 2"/></svg><b id="dMin">0</b><span id="dMinL">минут</span></div>
+    <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.2l3.2 2"/></svg><b id="dTime">0:00</b><span>активное время</span></div>
     <div><svg viewBox="0 0 24 24"><path d="M3 9c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/></svg><b id="dEx">0</b><span id="dExL">упражнений</span></div>
-    <div><svg viewBox="0 0 24 24"><path d="M5 20v-4M10 20v-8M15 20v-12M20 20V4"/></svg><b id="dLvl"></b><span>уровень</span></div>
+    <div><svg viewBox="0 0 24 24"><path d="M5 20v-4M10 20v-8M15 20v-12M20 20V4"/></svg><b id="dLvl"></b><span>режим</span></div>
   </div>
   <div class="motiv ph" id="motiv"><p>Ты молодец!<br>Это важный шаг<br>заботы о себе.</p></div>
   <button class="main-btn" id="againBtn" type="button">К новой тренировке <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
@@ -240,26 +290,38 @@
   </div>
 </div>
 
+<div class="overlay" id="infoOverlay" role="dialog" aria-modal="true">
+  <div class="dialog">
+    <p id="infoText"></p>
+    <div class="btns"><button class="stay" id="infoOk" type="button">Понятно</button></div>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 (function () {
   /* ================= НАСТРОЙКИ ================= */
   var MAIN_PAGE = 'main.html';
-  var EXERCISES_URL = 'exercises.json';   // библиотека упражнений по зонам
-  var EXERCISE_SEC = 60;                  // длительность одного упражнения
+  var EXERCISES_URL = 'exercises.json';   // единая база упражнений (энциклопедия + программы тренировок)
+  var EXERCISE_SEC = 50;                  // длительность одного упражнения
+  var REST_SEC = 10;                      // отдых между упражнениями (после последнего отдыха нет)
 
   // Картинки. Пустая строка '' — показывается бежевая заглушка.
-  // Чтобы подключить фото, положите файл в папку «Фото» и впишите путь, например 'Фото/Зона шея.png'
+  // Чтобы подключить фото, положите файл в папку «Фото» и впишите путь, например 'Фото/Энциклопедия.png'
   var SCREEN_BACKGROUND = 'Фото/Фон главного экрана.png';   // общий фон всех экранов раздела
-  var ZONE_IMAGES = {
+  var MENU_IMAGES = {
+    encyclopedia: '',   // например 'Фото/Энциклопедия.png'
+    workouts: ''        // например 'Фото/Тренировки.png'
+  };
+  var ZONE_IMAGES = {   // например 'Фото/Зона Шея и плечи.png', 'Фото/Зона Спина.png' …
     neck: '', back: '', face: '', arms: '', calves: '', thighs: '', feet: ''
   };
   var TOOL_IMAGES = {
     ball4: 'Фото/Мяч 4см.png', ball6: 'Фото/Мяч 6см.png', peanut: 'Фото/Арахис.png'
   };
-  var REST_IMAGE = '';         // фото на экране отдыха
-  var COMPLETION_IMAGE = '';   // фон карточки «Ты молодец!»
+  var REST_IMAGE = '';         // фото на экране отдыха, например 'Фото/Отдых.png'
+  var COMPLETION_IMAGE = '';   // фон карточки «Ты молодец!», например 'Фото/Завершение.png'
 
   var ZONES = [
     { id: 'neck', name: 'Шея и плечи' }, { id: 'back', name: 'Спина' },
@@ -267,18 +329,24 @@
     { id: 'calves', name: 'Икры' },      { id: 'thighs', name: 'Бёдра' },
     { id: 'feet', name: 'Стопы' }
   ];
-  var DURATIONS = [5, 10, 15];   // минут = количество упражнений
+  var DURATIONS = [5, 10];   // программа «5 минут» = первые 5 упражнений, «10 минут» = все 10
   var LEVELS = [
-    { id: 'light',   name: 'Лёгкий',      hint: 'Мягкое расслабление', rest: 30 },
-    { id: 'intense', name: 'Интенсивный', hint: 'Глубокая проработка', rest: 10 }
+    { id: 'light',   name: 'Лёгкий',      hint: 'Мягкое расслабление' },
+    { id: 'intense', name: 'Интенсивный', hint: 'Глубокая проработка' }
   ];
   var TOOLS = [
     { id: 'ball4', name: 'Мяч 4 см' }, { id: 'ball6', name: 'Мяч 6 см' }, { id: 'peanut', name: 'Арахис' }
   ];
+  // Какие режимы уже доступны для массажёра. Чего нет в списке — «в разработке»
+  var AVAILABLE = { ball4: ['light', 'intense'], ball6: ['light'], peanut: [] };
+  var LOCKED_TEXT = {
+    'ball6-intense': 'Извините, интенсивный режим для мяча 6 см пока в разработке.',
+    peanut: 'Извините, тренировки с массажёром «Арахис» пока в разработке.'
+  };
   /* ============================================== */
 
-  var SETUP_KEY = 'parakli_rec_setup_v1';      // выбранные настройки
-  var SESSION_KEY = 'parakli_rec_session_v1';  // незавершённая тренировка (на случай перезагрузки)
+  var SETUP_KEY = 'parakli_rec_setup_v2';      // выбранные настройки
+  var SESSION_KEY = 'parakli_rec_session_v2';  // незавершённая тренировка (на случай перезагрузки)
 
   var tg = window.Telegram && window.Telegram.WebApp;
   if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f1e4cf'); tg.setBackgroundColor('#f1e4cf'); } catch (e) {} }
@@ -286,7 +354,7 @@
 
   var $ = function (id) { return document.getElementById(id); };
   function find(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
-  function setImg(el, path) { if (path) el.style.backgroundImage = 'url("' + encodeURI(path) + '"), ' + getComputedStyle(el).backgroundImage; }
+  function setImg(el, path) { el.style.backgroundImage = ''; if (path) el.style.backgroundImage = 'url("' + encodeURI(path) + '"), ' + getComputedStyle(el).backgroundImage; }
   function load(key) { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; } }
   function store(key, v) { try { if (v == null) localStorage.removeItem(key); else localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
   function plural(n, f) { n = Math.abs(n) % 100; var d = n % 10; if (n > 10 && n < 20) return f[2]; if (d === 1) return f[0]; if (d >= 2 && d <= 4) return f[1]; return f[2]; }
@@ -301,62 +369,112 @@
     var t = $('toast'); t.textContent = text; t.classList.add('show');
     clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove('show'); }, 3000);
   }
+  function info(text) { $('infoText').textContent = text; $('infoOverlay').classList.add('open'); }
+  $('infoOk').addEventListener('click', function () { $('infoOverlay').classList.remove('open'); });
 
+  var SCREENS = ['scrMenu', 'scrZone', 'scrEnc', 'scrSetup', 'scrWork', 'scrDone'];
   function show(id) {
-    ['scrZone', 'scrSetup', 'scrWork', 'scrDone'].forEach(function (s) { $(s).hidden = s !== id; });
+    SCREENS.forEach(function (s) { $(s).hidden = s !== id; });
     window.scrollTo(0, 0);
     try { if (tg) { if (id === 'scrWork') tg.enableClosingConfirmation(); else tg.disableClosingConfirmation(); } } catch (e) {}
   }
 
-  /* ---------- Библиотека упражнений ---------- */
+  /* ---------- База упражнений ---------- */
   var library = null;
   function loadLibrary() {
     return fetch(EXERCISES_URL, { cache: 'no-cache' })
       .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
       .then(function (d) { library = d; return d; });
   }
-  loadLibrary().catch(function (e) { console.warn('Упражнения не загружены:', e); });
+  function getLibrary() { return library ? Promise.resolve(library) : loadLibrary(); }
+  getLibrary().catch(function (e) { console.warn('Упражнения не загружены:', e); });
 
-  // Упражнения для зоны, подходящие под массажёр и нагрузку. Порядок — как в файле,
-  // если их меньше, чем нужно, список повторяется по кругу. Нет подходящих — null.
-  function buildExercises(zone, tool, level, count) {
-    var all = (library && library[zone]) || [];
-    var fit = all.filter(function (e) {
-      return e && typeof e.name === 'string' && e.name.trim() &&
-        (!e.tools || !e.tools.length || e.tools.indexOf(tool) >= 0) &&
-        (!e.levels || !e.levels.length || e.levels.indexOf(level) >= 0);
-    });
-    if (!fit.length) return null;
+  function exById(id) {
+    var all = (library && library.exercises) || [];
+    for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
+    return null;
+  }
+  // Программа тренировки: первые count упражнений по порядку из базы. Не хватает — null
+  function buildProgram(tool, level, count) {
+    var ids = (library && library.programs && library.programs[tool + '-' + level]) || [];
+    if (ids.length < count) return null;
     var out = [];
     for (var i = 0; i < count; i++) {
-      var e = fit[i % fit.length];
-      out.push({ name: e.name, text: e.text || '', image: e.image || '', demo: !!e.demo });
+      var e = exById(ids[i]);
+      if (!e) return null;
+      out.push({ id: e.id, name: e.name, text: e.text || '', image: e.image || '' });
     }
     return out;
   }
 
-  /* ---------- Экран 1: зоны ---------- */
-  var setup = load(SETUP_KEY) || {};
-  if (DURATIONS.indexOf(setup.duration) < 0) setup.duration = 5;
-  if (!find(LEVELS, setup.level)) setup.level = 'light';
-  function saveSetup() { store(SETUP_KEY, setup); }
+  /* ---------- Меню ---------- */
+  setImg($('menuEnc'), MENU_IMAGES.encyclopedia);
+  setImg($('menuWork'), MENU_IMAGES.workouts);
+  $('menuBack').addEventListener('click', function () { location.href = MAIN_PAGE + location.search; });
+  $('menuEnc').addEventListener('click', function () { show('scrZone'); });
+  $('menuWork').addEventListener('click', function () { renderSetup(); show('scrSetup'); });
 
+  /* ---------- Энциклопедия ---------- */
   ZONES.forEach(function (z, i) {
     var b = document.createElement('button');
     b.type = 'button';
     b.className = 'zone ph' + (i === ZONES.length - 1 ? ' wide' : '');
-    b.innerHTML = '<span class="plate"><span></span><svg viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg></span>';
+    b.innerHTML = '<span class="plate"><span></span><svg class="arrow" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg></span>';
     b.querySelector('.plate span').textContent = z.name;
     $('zones').appendChild(b);
     setImg(b, ZONE_IMAGES[z.id]);
-    b.addEventListener('click', function () {
-      setup.zone = z.id; saveSetup();
-      renderSetup(); show('scrSetup');
-    });
+    b.addEventListener('click', function () { openZone(z); });
   });
-  $('zoneBack').addEventListener('click', function () { location.href = MAIN_PAGE + location.search; });
+  $('zoneBack').addEventListener('click', function () { show('scrMenu'); });
+  $('encBack').addEventListener('click', function () { show('scrZone'); });
 
-  /* ---------- Экран 2: настройка ---------- */
+  function openZone(z) {
+    $('encTitle').textContent = z.name;
+    $('encSub').textContent = '';
+    var list = $('exlist'); list.textContent = '';
+    show('scrEnc');
+    getLibrary().then(function () {
+      var items = (library.exercises || []).filter(function (e) { return e.zone === z.id; });
+      $('encSub').textContent = items.length ? items.length + ' ' + plural(items.length, ['упражнение', 'упражнения', 'упражнений']) : '';
+      if (!items.length) {
+        var p = document.createElement('div'); p.className = 'empty glass';
+        p.textContent = 'Упражнения для этой зоны скоро появятся';
+        list.appendChild(p); return;
+      }
+      items.forEach(function (e) {
+        var card = document.createElement('article'); card.className = 'ex glass';
+        card.innerHTML = '<div class="pic ph"></div><div class="body"><h3></h3><div class="tags"><span></span><span></span></div><p></p></div>';
+        if (e.image) {
+          var img = document.createElement('img');
+          img.loading = 'lazy'; img.decoding = 'async'; img.alt = e.name;
+          img.onerror = function () { img.remove(); };   // нет файла — остаётся заглушка
+          img.src = encodeURI(e.image);
+          card.querySelector('.pic').appendChild(img);
+        }
+        card.querySelector('h3').textContent = e.name;
+        var tags = card.querySelectorAll('.tags span');
+        tags[0].textContent = (find(TOOLS, e.tool) || { name: e.tool }).name;
+        tags[1].textContent = (find(LEVELS, e.level) || { name: e.level }).name + ' режим';
+        card.querySelector('p').textContent = e.text;
+        list.appendChild(card);
+      });
+    }).catch(function () {
+      var p = document.createElement('div'); p.className = 'empty glass';
+      p.textContent = 'Не удалось загрузить упражнения. Проверьте интернет.';
+      list.appendChild(p);
+    });
+  }
+
+  /* ---------- Настройка тренировки ---------- */
+  function isAvailable(tool, level) { return !!AVAILABLE[tool] && AVAILABLE[tool].indexOf(level) >= 0; }
+  function lockedText(tool, level) { return LOCKED_TEXT[tool + '-' + level] || LOCKED_TEXT[tool] || 'Извините, этот режим пока в разработке.'; }
+
+  var setup = load(SETUP_KEY) || {};
+  if (DURATIONS.indexOf(setup.duration) < 0) setup.duration = 5;
+  if (!find(TOOLS, setup.tool)) setup.tool = null;
+  if (!find(LEVELS, setup.level) || (setup.tool && !isAvailable(setup.tool, setup.level))) setup.level = null;
+  function saveSetup() { store(SETUP_KEY, setup); }
+
   DURATIONS.forEach(function (d) {
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'dur glass'; b.dataset.v = d;
@@ -364,57 +482,71 @@
     b.addEventListener('click', function () { setup.duration = d; saveSetup(); renderSetup(); });
     $('durs').appendChild(b);
   });
-  LEVELS.forEach(function (l) {
-    var b = document.createElement('button');
-    b.type = 'button'; b.className = 'level glass'; b.dataset.v = l.id;
-    b.innerHTML = '<span class="dot"></span><span><b></b><small></small></span>';
-    b.querySelector('b').textContent = l.name;
-    b.querySelector('small').textContent = l.hint;
-    b.addEventListener('click', function () { setup.level = l.id; saveSetup(); renderSetup(); });
-    $('levels').appendChild(b);
-  });
   TOOLS.forEach(function (t) {
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'tool glass'; b.dataset.v = t.id;
     b.innerHTML = '<div class="pic ph"></div><span></span>';
     b.querySelector('span').textContent = t.name;
-    b.addEventListener('click', function () { setup.tool = t.id; saveSetup(); renderSetup(); });
+    b.addEventListener('click', function () {
+      setup.tool = t.id;
+      if (setup.level && !isAvailable(t.id, setup.level)) setup.level = null;   // сбрасываем несовместимый режим
+      saveSetup(); renderSetup();
+    });
     $('tools').appendChild(b);
     setImg(b.querySelector('.pic'), TOOL_IMAGES[t.id]);
   });
+  LEVELS.forEach(function (l) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'level glass'; b.dataset.v = l.id;
+    b.innerHTML = '<span class="dot"></span><span><b></b><small></small></span>' +
+      '<svg class="lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>';
+    b.querySelector('b').textContent = l.name;
+    b.addEventListener('click', function () {
+      if (setup.tool && !isAvailable(setup.tool, l.id)) { info(lockedText(setup.tool, l.id)); return; }
+      setup.level = l.id; saveSetup(); renderSetup();
+    });
+    $('levels').appendChild(b);
+  });
+
   function renderSetup() {
-    [['durs', setup.duration], ['levels', setup.level], ['tools', setup.tool]].forEach(function (g) {
+    [['durs', setup.duration], ['tools', setup.tool], ['levels', setup.level]].forEach(function (g) {
       Array.prototype.forEach.call($(g[0]).children, function (b) {
         var on = String(g[1]) === b.dataset.v;
         b.classList.toggle('on', on);
         b.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
     });
+    Array.prototype.forEach.call($('levels').children, function (b) {
+      var locked = !!setup.tool && !isAvailable(setup.tool, b.dataset.v);
+      b.classList.toggle('locked', locked);
+      b.querySelector('small').textContent = locked ? 'В разработке' : find(LEVELS, b.dataset.v).hint;
+    });
   }
-  $('setupBack').addEventListener('click', function () { show('scrZone'); });
+  $('setupBack').addEventListener('click', function () { show('scrMenu'); });
 
   $('startBtn').addEventListener('click', function () {
-    if (!find(ZONES, setup.zone)) { toast('Выберите зону тела'); show('scrZone'); return; }
     if (DURATIONS.indexOf(setup.duration) < 0) { toast('Выберите длительность'); return; }
-    if (!find(LEVELS, setup.level)) { toast('Выберите уровень нагрузки'); return; }
-    if (!find(TOOLS, setup.tool)) { toast('Выберите инструмент'); return; }
+    if (!find(TOOLS, setup.tool)) { toast('Выберите массажёр'); return; }
+    if (!AVAILABLE[setup.tool] || !AVAILABLE[setup.tool].length) { info(lockedText(setup.tool, '')); return; }
+    if (!find(LEVELS, setup.level)) { toast('Выберите режим нагрузки'); return; }
+    if (!isAvailable(setup.tool, setup.level)) { info(lockedText(setup.tool, setup.level)); return; }
     var btn = $('startBtn');
     btn.disabled = true;
-    (library ? Promise.resolve(library) : loadLibrary()).then(function () {
+    getLibrary().then(function () {
       btn.disabled = false;
-      var list = buildExercises(setup.zone, setup.tool, setup.level, setup.duration);
-      if (!list) { toast('Для выбранной комбинации пока нет доступной тренировки. Попробуйте изменить настройки.'); return; }
+      var list = buildProgram(setup.tool, setup.level, setup.duration);
+      if (!list) { toast('Для выбранной комбинации пока нет полной программы упражнений.'); return; }
       startSession(list);
     }).catch(function () { btn.disabled = false; toast('Не удалось загрузить упражнения. Проверьте интернет.'); });
   });
 
-  /* ---------- Экран 3: тренировка ----------
+  /* ---------- Тренировка ----------
      Состояние одной тренировки (S):
        phase      — 'exercise' (упражнение) | 'rest' (отдых) | 'done' (завершена)
        paused     — стоит ли на паузе
        idx        — номер текущего упражнения (с 0)
        left/len   — сколько осталось и сколько всего длится текущий этап, мс
-       exSec[i]   — сколько секунд упражнения i реально выполнено (не больше 60)
+       exSec[i]   — сколько секунд упражнения i реально выполнено (не больше 50)
        doneEx[i]  — упражнение i доведено до конца
        restSec    — сколько секунд длился отдых
      Таймер один на всю страницу: время считается по реально прошедшему (performance.now),
@@ -423,12 +555,11 @@
   var C = 2 * Math.PI * 45;   // длина окружности таймера
   $('arc').style.strokeDasharray = C;
 
-  function restMs() { return find(LEVELS, S.level).rest * 1000; }
   function persist() { store(SESSION_KEY, S); }
 
   function startSession(list) {
     S = {
-      id: newId(), zone: setup.zone, duration: setup.duration, level: setup.level, tool: setup.tool,
+      id: newId(), duration: setup.duration, level: setup.level, tool: setup.tool,
       list: list, planned: list.length, idx: 0, phase: 'exercise', paused: false,
       left: EXERCISE_SEC * 1000, len: EXERCISE_SEC * 1000,
       exSec: list.map(function () { return 0; }), doneEx: list.map(function () { return false; }),
@@ -441,7 +572,6 @@
 
   function buildBar() {
     var bar = $('bar'); bar.textContent = '';
-    bar.style.gap = S.planned > 10 ? '3px' : '4px';
     for (var i = 0; i < S.planned; i++) { var s = document.createElement('div'); s.className = 'seg'; s.appendChild(document.createElement('i')); bar.appendChild(s); }
   }
 
@@ -452,7 +582,7 @@
   }
   function goRest() {
     S.phase = 'rest'; S.paused = false;
-    S.left = S.len = restMs();
+    S.left = S.len = REST_SEC * 1000;
     renderStage(); persist();
   }
   function finish() {
@@ -473,7 +603,7 @@
     }
   }
 
-  // Стрелка вправо: из упражнения — к отдыху (или к завершению), из отдыха — к следующему упражнению
+  // Стрелка вправо: из упражнения — к отдыху (или к завершению), из отдыха — к следующему упражнению (пропуск отдыха)
   $('nextBtn').addEventListener('click', function () {
     if (!S || S.phase === 'done') return;
     if (S.phase === 'exercise') { if (S.idx >= S.planned - 1) finish(); else goRest(); }
@@ -500,20 +630,17 @@
   function renderStage() {
     var ex = S.list[S.idx], last = S.idx >= S.planned - 1;
     var photo = $('wphoto');
-    photo.style.backgroundImage = '';
     if (S.phase === 'exercise') {
       $('wcount').textContent = 'Упражнение ' + (S.idx + 1) + ' из ' + S.planned;
       $('wtitle').textContent = ex.name;
-      $('wdemo').hidden = !ex.demo;
-      $('wtext').textContent = (ex.text ? ex.text + ' ' : '') + 'Инструмент: ' + find(TOOLS, S.tool).name + '.';
-      $('wnext').textContent = last ? 'Далее: завершение тренировки' : 'Далее: отдых ' + (restMs() / 1000) + ' секунд';
+      $('wtext').textContent = ex.text;
+      $('wnext').textContent = last ? 'Далее: завершение тренировки' : 'Далее: отдых ' + REST_SEC + ' секунд';
       setImg(photo, ex.image);
     } else {
       $('wcount').textContent = 'Перед упражнением ' + (S.idx + 2) + ' из ' + S.planned;
       $('wtitle').textContent = 'Отдых';
-      $('wdemo').hidden = true;
       $('wtext').textContent = 'Расслабьтесь и спокойно подышите.';
-      $('wnext').textContent = 'Далее: упражнение ' + (S.idx + 2);
+      $('wnext').textContent = 'Далее: ' + S.list[S.idx + 1].name;
       setImg(photo, REST_IMAGE);
     }
     $('prevBtn').disabled = S.phase === 'exercise' && S.idx === 0;
@@ -523,14 +650,16 @@
 
   function fmt(ms) { var s = Math.ceil(ms / 1000), m = Math.floor(s / 60); s %= 60; return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
 
-  // Таймер и прогресс рисуются из одного значения S.left, поэтому всегда совпадают
+  // Таймер и прогресс рисуются из одного значения S.left, поэтому всегда совпадают.
+  // Сегмент заполняется только во время упражнения; на отдыхе он остаётся как был
   function renderTick() {
     $('wtime').textContent = fmt(S.left);
     $('arc').style.strokeDashoffset = C * (1 - S.left / S.len);
     var segs = $('bar').children;
     for (var i = 0; i < segs.length; i++) {
-      var f = i < S.idx ? 1 : i > S.idx ? 0 : (S.phase === 'rest' ? 1 : 1 - S.left / S.len);
-      segs[i].firstChild.style.transform = 'scaleX(' + f + ')';
+      var f = S.exSec[i] / EXERCISE_SEC;
+      if (i === S.idx && S.phase === 'exercise') f = Math.max(f, 1 - S.left / S.len);
+      segs[i].firstChild.style.transform = 'scaleX(' + Math.min(1, f) + ')';
     }
   }
 
@@ -576,34 +705,35 @@
     renderSetup(); show('scrSetup');
   });
 
-  /* ---------- Экран 4: завершение ---------- */
+  /* ---------- Завершение ---------- */
   function activeSec() { return S.exSec.reduce(function (a, b) { return a + b; }, 0); }
   function completedCount() { return S.doneEx.filter(Boolean).length; }
 
   function saveResult() {
     // Отправка идёт через очередь в api.js: если нет связи, результат уйдёт при следующем открытии.
-    // Повторная отправка той же тренировки на сервере дубль не создаёт.
+    // Повторная отправка той же тренировки (тот же session_id) на сервере дубль не создаёт.
     Parakli.saveWorkout({
-      session_id: S.id, zone: S.zone, duration: S.duration, level: S.level, tool: S.tool,
+      session_id: S.id, duration: S.duration, level: S.level, tool: S.tool,
+      planned: S.planned,
       completed: completedCount(),
       active_seconds: Math.round(activeSec()),
       rest_seconds: Math.round(S.restSec),
-      elapsed_seconds: Math.round(S.elapsedSec)
+      elapsed_seconds: Math.round(S.elapsedSec),                                         // без пауз
+      total_seconds: Math.max(0, Math.round(((S.finishedAt || Date.now()) - S.startedAt) / 1000))   // с паузами
     });
   }
 
   function renderDone() {
-    var min = Math.round(activeSec() / 60), n = completedCount();
-    $('dMin').textContent = min;
-    $('dMinL').textContent = plural(min, ['минута', 'минуты', 'минут']);
-    $('dEx').textContent = n;
-    $('dExL').textContent = plural(n, ['упражнение', 'упражнения', 'упражнений']);
+    var sec = Math.round(activeSec()), n = completedCount();
+    $('dTime').textContent = Math.floor(sec / 60) + ':' + ('0' + sec % 60).slice(-2);
+    $('dEx').textContent = n + ' из ' + S.planned;
+    $('dExL').textContent = plural(S.planned, ['упражнение', 'упражнения', 'упражнений']);
     $('dLvl').textContent = find(LEVELS, S.level).name;
   }
   setImg($('motiv'), COMPLETION_IMAGE);
 
   function closeSession() { S = null; store(SESSION_KEY, null); }
-  $('againBtn').addEventListener('click', function () { closeSession(); setup.zone = null; saveSetup(); show('scrZone'); });
+  $('againBtn').addEventListener('click', function () { closeSession(); renderSetup(); show('scrSetup'); });
   $('homeBtn').addEventListener('click', function () { closeSession(); location.href = MAIN_PAGE + location.search; });
 
   /* ---------- Старт страницы ---------- */
@@ -619,9 +749,10 @@
       toast('Тренировка на паузе. Нажмите ▶, чтобы продолжить.');
     }
   } else {
-    show('scrZone');
+    show('scrMenu');
   }
 })();
 </script>
 </body>
+</html>
 </html>
