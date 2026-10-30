@@ -87,6 +87,18 @@
       img._req = (img._req || 0) + 1;                   // отменяет незавершённую загрузку фото с сервера
       img.src = src;
     },
+    // Выход из аккаунта на этом устройстве: сначала досылаем тренировки, потом выходим и чистим копии на телефоне
+    logout: function () {
+      return Parakli.flushWorkouts().then(function () { return call('/api/logout'); }).then(function (r) {
+        if (r.ok) {
+          try {
+            ['parakli_user_v1', WORKOUT_QUEUE, 'parakli_rec_session_v2', 'parakli_rec_setup_v2'].forEach(function (k) { localStorage.removeItem(k); });
+            sessionStorage.removeItem('parakli_verified');
+          } catch (e) {}
+        }
+        return r;
+      });
+    },
     // Удаление аккаунта (кнопка в профиле)
     deleteAccount: function () {
       return call('/api/account/delete').then(function (r) {
