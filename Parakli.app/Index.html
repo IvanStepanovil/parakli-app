@@ -174,13 +174,89 @@
  
   .msg { min-height: 20px; margin: 12px 4px 0; font-size: 14px; color: var(--error); }
   body.loading .wrap { visibility: hidden; }
+
+  /* Экраны: приветствие / регистрация / вход */
+  .back { display: grid; place-items: center; width: 40px; height: 40px; margin: -6px 0 0 -8px; border: 0; background: none; cursor: pointer; }
+  .back svg { width: 24px; height: 24px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .back + h1 { margin-top: 6px; }
+  .brand {
+    display: flex; justify-content: center; padding: 22px 20px 14px; margin-top: 6px; border-radius: 26px;
+    background: rgba(255,252,245,.62); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    box-shadow: 0 10px 26px rgba(120,88,40,.12), inset 0 0 0 1px rgba(255,255,255,.75);
+  }
+  .brand img { display: block; width: 62%; max-width: 230px; height: auto; }
+  .welcome h1 { text-align: center; margin-top: 24px; }
+  .welcome .sub { text-align: center; }
+  .choice {
+    display: flex; align-items: center; gap: 14px; width: 100%; margin-top: 12px; padding: 18px 18px 18px 16px;
+    border: 0; border-radius: 22px; text-align: left; cursor: pointer; color: var(--ink);
+    background: rgba(255,252,245,.8); box-shadow: 0 8px 20px rgba(120,88,40,.12), inset 0 0 0 1px rgba(220,201,168,.9);
+    transition: transform .1s;
+  }
+  .choice:active { transform: scale(.985); }
+  .choice:focus-visible { outline: 3px solid rgba(185,138,82,.5); outline-offset: 2px; }
+  .choice .ico { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; background: rgba(232,214,184,.7); }
+  .choice .ico svg { width: 26px; height: 26px; stroke: var(--gold-dark); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .choice b { display: block; font-family: var(--serif); font-weight: 600; font-size: 25px; line-height: 1.05; }
+  .choice small { display: block; margin-top: 3px; font-size: 14.5px; color: var(--muted); }
+  .choice > span:nth-child(2) { flex: 1; min-width: 0; }
+  .choice .go { width: 18px; height: 18px; stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .choice.primary { color: #fff; background: linear-gradient(160deg, #b98a52, #8c6330); box-shadow: 0 10px 22px rgba(140,99,48,.32), inset 0 1px 0 rgba(255,255,255,.3); }
+  .choice.primary small { color: rgba(255,255,255,.85); }
+  .choice.primary .ico { background: rgba(255,255,255,.2); }
+  .choice.primary .ico svg, .choice.primary .go { stroke: #fff; }
+  .eye { flex: none; display: grid; place-items: center; width: 36px; height: 36px; margin-right: -8px; border: 0; background: none; cursor: pointer; border-radius: 50%; }
+  .eye svg { width: 22px; height: 22px; stroke: #8d7d6a; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .eye.on svg { stroke: var(--gold-dark); }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body class="loading">
  
 <main class="wrap">
- 
+
+<!-- ===== Приветствие ===== -->
+<section class="welcome" id="scrWelcome">
+  <div class="brand"><img src="Фото/Лого с текстом.png" alt="Паракли"></div>
+  <h1>Добро пожаловать</h1>
+  <p class="sub">Создайте личный кабинет или войдите в уже существующий</p>
+  <button type="button" class="choice primary" data-go="scrRegister">
+    <span class="ico"><svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"/><path d="M3 20c0-3.9 3.1-6.5 7-6.5 1.3 0 2.5.3 3.5.8M18 14v6M15 17h6"/></svg></span>
+    <span><b>Регистрация</b><small>Я здесь впервые</small></span>
+    <svg class="go" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg>
+  </button>
+  <button type="button" class="choice" data-go="scrLogin">
+    <span class="ico"><svg viewBox="0 0 24 24"><path d="M14 4h4a2 2 0 012 2v12a2 2 0 01-2 2h-4"/><path d="M10 16l4-4-4-4M14 12H3"/></svg></span>
+    <span><b>Войти</b><small>У меня уже есть аккаунт</small></span>
+    <svg class="go" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5"/></svg>
+  </button>
+</section>
+
+<!-- ===== Вход в существующий аккаунт ===== -->
+<section id="scrLogin" hidden>
+  <button type="button" class="back" data-go="scrWelcome" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <h1>Вход в аккаунт</h1>
+  <p class="sub">Введите имя, фамилию и пароль, которые указывали при регистрации</p>
+  <div class="field" data-for="l_first_name">
+    <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+    <input id="l_first_name" type="text" placeholder="Имя" autocomplete="off" maxlength="40">
+  </div>
+  <div class="field" data-for="l_last_name">
+    <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
+    <input id="l_last_name" type="text" placeholder="Фамилия" autocomplete="off" maxlength="40">
+  </div>
+  <div class="field" data-for="l_password">
+    <svg class="ic" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg>
+    <input id="l_password" type="password" placeholder="Пароль" autocomplete="current-password" maxlength="64">
+    <button type="button" class="eye" aria-label="Показать пароль"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+  </div>
+  <button class="btn" id="loginBtn" type="button" disabled>Войти</button>
+  <div class="msg" id="loginMsg" role="alert"></div>
+</section>
+
+<!-- ===== Регистрация ===== -->
+<section id="scrRegister" hidden>
+  <button type="button" class="back" data-go="scrWelcome" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
   <h1>Создаём ваш личный кабинет</h1>
   <p class="sub">Это займёт меньше минуты</p>
  
@@ -222,6 +298,13 @@
     <svg class="ic" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-12a7 7 0 10-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/></svg>
     <input id="city" type="text" placeholder="Город" autocomplete="off" maxlength="60" required>
   </div>
+
+  <div class="field" data-for="password">
+    <svg class="ic" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg>
+    <input id="password" type="password" placeholder="Придумайте пароль" autocomplete="new-password" maxlength="64" required>
+    <button type="button" class="eye" aria-label="Показать пароль"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
+  </div>
+  <p class="hint">Не меньше 6 символов. Пароль нужен, чтобы войти в аккаунт с другого устройства</p>
  
   <!-- Нажатие на квадрат отмечает галочку, нажатие на подчёркнутый текст открывает документ -->
   <!-- 1. Обязательное: документы 01 и 03 -->
@@ -254,6 +337,7 @@
 
   <button class="btn" id="submit" type="button" disabled>Продолжить</button>
   <div class="msg" id="msg" role="alert"></div>
+</section>
 </main>
 
 <!-- Окно с документом -->
@@ -277,7 +361,7 @@
   if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f6ecdc'); tg.setBackgroundColor('#f6ecdc'); } catch (e) {} }
 
   var $ = function (id) { return document.getElementById(id); };
-  var fields = ['first_name', 'last_name', 'phone', 'email', 'city'];
+  var fields = ['first_name', 'last_name', 'phone', 'email', 'city', 'password'];
   var btn = $('submit'), msg = $('msg');
 
   function goMain() { location.replace(MAIN_PAGE + location.search); }
@@ -290,10 +374,68 @@
   Parakli.getSession().then(function (r) {
     if (r.ok && r.data.registered) { Parakli.markVerified(); goMain(); return; }
     showForm();
-    if (r.status === 401) msg.textContent = 'Откройте приложение из Telegram: отправьте боту команду /start.';
+    if (r.status === 401) msg.textContent = $('loginMsg').textContent = 'Откройте приложение из Telegram: отправьте боту команду /start.';
   }).catch(function () {
     showForm();
-    msg.textContent = 'Нет связи с сервером. Попробуйте позже.';
+    msg.textContent = $('loginMsg').textContent = 'Нет связи с сервером. Попробуйте позже.';
+  });
+
+  /* ---------- Переходы между экранами ---------- */
+  var SCREENS = ['scrWelcome', 'scrRegister', 'scrLogin'];
+  function go(id) {
+    SCREENS.forEach(function (s) { $(s).hidden = s !== id; });
+    window.scrollTo(0, 0);
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-go]'), function (b) {
+    b.addEventListener('click', function () { go(b.getAttribute('data-go')); });
+  });
+
+  /* ---------- Показать / скрыть пароль ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('.eye'), function (b) {
+    b.addEventListener('click', function () {
+      var inp = b.parentNode.querySelector('input'), show = inp.type === 'password';
+      inp.type = show ? 'text' : 'password';
+      b.classList.toggle('on', show);
+      b.setAttribute('aria-label', show ? 'Скрыть пароль' : 'Показать пароль');
+    });
+  });
+  function goodPassword(v) { return v.length >= 6 && v.length <= 64 && v.trim() === v; }
+
+  /* ---------- Вход ---------- */
+  var loginFields = ['l_first_name', 'l_last_name', 'l_password'], logging = false;
+  function loginReady() {
+    return $('l_first_name').value.trim().length >= 2 && $('l_last_name').value.trim().length >= 2 && $('l_password').value.length >= 1;
+  }
+  loginFields.forEach(function (id) {
+    $(id).addEventListener('input', function () {
+      $('loginMsg').textContent = '';
+      document.querySelector('.field[data-for="' + id + '"]').classList.remove('invalid');
+      $('loginBtn').disabled = logging || !loginReady();
+    });
+  });
+  $('l_password').addEventListener('keydown', function (e) { if (e.key === 'Enter' && !$('loginBtn').disabled) $('loginBtn').click(); });
+  $('loginBtn').addEventListener('click', function () {
+    if (logging || !loginReady()) return;
+    logging = true; $('loginBtn').disabled = true; $('loginBtn').textContent = 'Входим…'; $('loginMsg').textContent = '';
+    Parakli.login({
+      first_name: $('l_first_name').value.trim(),
+      last_name: $('l_last_name').value.trim(),
+      password: $('l_password').value
+    }).then(function (r) {
+      if (r.ok) { Parakli.markVerified(); goMain(); return; }
+      var m = $('loginMsg');
+      if (r.status === 401 && r.data && r.data.error === 'wrong_credentials') {
+        m.textContent = 'Неверные имя, фамилия или пароль.';
+        loginFields.forEach(function (id) { document.querySelector('.field[data-for="' + id + '"]').classList.add('invalid'); });
+      } else if (r.status === 401) m.textContent = 'Откройте приложение из Telegram: отправьте боту команду /start.';
+      else if (r.status === 429) m.textContent = 'Слишком много попыток. Попробуйте через несколько минут.';
+      else if (r.status === 409) m.textContent = 'У этого Telegram уже есть свой аккаунт.';
+      else m.textContent = 'Не удалось войти. Попробуйте ещё раз.';
+    }).catch(function () {
+      $('loginMsg').textContent = 'Нет связи с сервером. Попробуйте ещё раз.';
+    }).then(function () {
+      logging = false; $('loginBtn').textContent = 'Войти'; $('loginBtn').disabled = !loginReady();
+    });
   });
 
   /* ---------- Флаги стран ---------- */
@@ -336,7 +478,8 @@
       return $('prefix').textContent === '+7' ? n.length === 10 : n.length >= 7;
     },
     email: function (v) { return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.trim()); },
-    city: function (v) { return v.trim().length >= 2; }
+    city: function (v) { return v.trim().length >= 2; },
+    password: goodPassword
   };
 
   function validate(showErrors) {
@@ -372,6 +515,7 @@
       phone: $('prefix').textContent + $('phone').value.replace(/\D/g, ''),
       email: $('email').value.trim(),
       city: $('city').value.trim(),
+      password: $('password').value,
       age_confirmed: $('age').checked,   // подтверждение, что пользователю есть 14 лет
       ads_consent: $('ads').checked      // согласие на рекламную рассылку
     }).then(function (r) {
