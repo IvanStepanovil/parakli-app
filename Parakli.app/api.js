@@ -48,6 +48,10 @@
     getSession: function () {
       return call('/api/session').then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
     },
+    // Вход в существующий аккаунт с другого Telegram (имя, фамилия, пароль)
+    login: function (data) {
+      return call('/api/login', data).then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
+    },
     register: function (data) {
       return call('/api/register', data).then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
     },
@@ -124,12 +128,18 @@
     },
 
     // Копия профиля на устройстве: страницы показывают имя и аватарку сразу, а свежие данные подтягиваются в фоне
-    cacheUser: function (user) { try { localStorage.setItem('parakli_user_v1', JSON.stringify(user)); } catch (e) {} },
+    // Запоминаем, в каком Telegram сохранена копия (аккаунт может принадлежать другому Telegram, если вошли по паролю)
+    cacheUser: function (user) {
+      try {
+        var me = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
+        localStorage.setItem('parakli_user_v1', JSON.stringify(Object.assign({}, user, { _tg: me || null })));
+      } catch (e) {}
+    },
     cachedUser: function () {
       try {
         var u = JSON.parse(localStorage.getItem('parakli_user_v1') || 'null');
         var me = tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.id;
-        return (u && typeof u === 'object' && (!me || u.telegram_id === me)) ? u : null;
+        return (u && typeof u === 'object' && (!me || u._tg === me || u.telegram_id === me)) ? u : null;
       } catch (e) { return null; }
     },
 
