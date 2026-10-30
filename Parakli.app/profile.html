@@ -179,6 +179,7 @@
       <div class="chart" id="chart" role="img"></div>
     </div>
     <p class="cmp" id="cmp"></p>
+    <p class="cmp" id="statsErr" hidden style="color:#a2412b"></p>
   </section>
 
   <!-- Пункты (переходы подключим позже) -->
@@ -253,15 +254,18 @@
   var lastUser = null;
   function toMin(sec) { return Math.round((Number(sec) || 0) / 60); }
   function loadStats() {
+    var err = document.getElementById('statsErr');
+    function fail(text) { err.textContent = 'Статистика не загрузилась: ' + text; err.hidden = false; }
     Parakli.getStats().then(function (r) {
-      if (!r.ok || !r.data || !Array.isArray(r.data.days)) return;
+      if (!r.ok || !r.data || !Array.isArray(r.data.days)) { fail('код ' + r.status + (r.data && r.data.error ? ', ' + r.data.error : '')); return; }
+      err.hidden = true;
       stats = {
         days: r.data.days.map(toMin),
         thisWeek: toMin(r.data.this_week),
         prevWeek: toMin(r.data.prev_week)
       };
       if (lastUser) render(lastUser);
-    }).catch(function () {});
+    }).catch(function () { fail('нет связи с сервером'); });
   }
 
   function clean(v) { return typeof v === 'string' ? v.trim() : ''; }
@@ -342,7 +346,8 @@
 
   Parakli.getSession().then(function (r) {
     if (r.ok && r.data.registered) { Parakli.markVerified(); render(r.data.user); }
-    else location.replace('Index.html' + location.search);
+    else if (r.ok) location.replace('Index.html' + location.search);   // не зарегистрирован
+    else if (!cachedUser) render({});                                  // ошибка сервера — не выкидываем на регистрацию
   }).catch(function () {
     if (!cachedUser) render({});
   });
