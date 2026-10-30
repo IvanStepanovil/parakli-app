@@ -122,9 +122,19 @@
   .tab.on .line { stroke: var(--gold); }
   .tab .homeline { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
 
+  /* Кнопка «Выйти из аккаунта» */
+  .logout-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 26px; padding: 14px;
+    border-radius: 22px; text-align: center; font-size: 15px;
+    color: var(--ink); background: rgba(255,251,244,.75);
+    box-shadow: inset 0 0 0 1px rgba(140,99,48,.35);
+  }
+  .logout-btn svg { width: 18px; height: 18px; fill: none; stroke: #8c6330; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .dialog .confirm.neutral { background: linear-gradient(135deg, #b48a5c 0%, #9a7148 55%, #84603c 100%); }
+
   /* Кнопка «Удалить аккаунт» */
   .delete-btn {
-    display: block; width: 100%; margin-top: 26px; padding: 14px;
+    display: block; width: 100%; margin-top: 10px; padding: 14px;
     border-radius: 22px; text-align: center; font-size: 15px;
     color: #b3402f; background: rgba(255,251,244,.6);
     box-shadow: inset 0 0 0 1px rgba(179,64,47,.35);
@@ -201,9 +211,23 @@
     </button>
   </div>
 
-  <!-- Удаление аккаунта -->
+  <!-- Выход и удаление аккаунта -->
+  <button class="logout-btn" id="logoutBtn" type="button"><svg viewBox="0 0 24 24"><path d="M10 4H6a2 2 0 00-2 2v12a2 2 0 002 2h4"/><path d="M15 16l4-4-4-4M19 12H9"/></svg>Выйти из аккаунта</button>
   <button class="delete-btn" id="deleteAccount" type="button">Удалить аккаунт</button>
 </main>
+
+<!-- Окно подтверждения выхода -->
+<div class="overlay" id="logoutOverlay" role="dialog" aria-modal="true" aria-labelledby="logoutTitle">
+  <div class="dialog">
+    <h2 id="logoutTitle">Выйти из аккаунта?</h2>
+    <p>Данные и тренировки сохранятся. Чтобы вернуться, нажмите «Войти» и введите имя, фамилию и пароль.</p>
+    <p class="err" id="logoutErr"></p>
+    <div class="btns">
+      <button class="cancel" id="logoutCancel" type="button">Отмена</button>
+      <button class="confirm neutral" id="logoutConfirm" type="button">Выйти</button>
+    </div>
+  </div>
+</div>
 
 <!-- Окно подтверждения удаления -->
 <div class="overlay" id="deleteOverlay" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
@@ -363,6 +387,26 @@
 
   /* ---------- Удаление аккаунта ---------- */
   var REGISTER_PAGE = 'Index.html';   // страница регистрации (имя файла как в репозитории)
+
+  /* ---------- Выход из аккаунта ---------- */
+  var logoutOverlay = $('logoutOverlay'), logoutBtn = $('logoutConfirm');
+  function closeLogout() { if (!logoutBtn.disabled) logoutOverlay.classList.remove('open'); }
+  $('logoutBtn').addEventListener('click', function () { $('logoutErr').textContent = ''; logoutOverlay.classList.add('open'); });
+  $('logoutCancel').addEventListener('click', closeLogout);
+  logoutOverlay.addEventListener('click', function (e) { if (e.target === logoutOverlay) closeLogout(); });
+  logoutBtn.addEventListener('click', function () {
+    logoutBtn.disabled = true; $('logoutErr').textContent = '';
+    Parakli.logout().then(function (r) {
+      if (r.ok) { location.replace(REGISTER_PAGE + location.search); return; }
+      logoutBtn.disabled = false;
+      $('logoutErr').textContent = r.status === 409
+        ? 'Сначала задайте пароль в «Моих данных» — без него не получится войти обратно.'
+        : 'Не удалось выйти. Попробуйте ещё раз. (код ' + r.status + ')';
+    }).catch(function () {
+      logoutBtn.disabled = false;
+      $('logoutErr').textContent = 'Нет связи с сервером. Попробуйте ещё раз.';
+    });
+  });
   var overlay = $('deleteOverlay'), confirmBtn = $('deleteConfirm');
 
   function openDelete() { $('deleteErr').textContent = ''; overlay.classList.add('open'); }
