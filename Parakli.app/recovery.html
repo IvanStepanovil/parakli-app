@@ -580,6 +580,7 @@
 
   function goExercise(i) {
     S.idx = i; S.phase = 'exercise'; S.paused = false;
+    S.reached = Math.max(S.reached || 0, i);   // дальнее упражнение, до которого дошли
     S.left = S.len = EXERCISE_SEC * 1000;
     renderStage(); persist();
   }
@@ -660,8 +661,9 @@
     $('arc').style.strokeDashoffset = C * (1 - S.left / S.len);
     var segs = $('bar').children;
     for (var i = 0; i < segs.length; i++) {
-      var f = S.exSec[i] / EXERCISE_SEC;
-      if (i === S.idx && S.phase === 'exercise') f = Math.max(f, 1 - S.left / S.len);
+      // Пройденные упражнения (доделанные или пропущенные) — полный блок. Учёт времени от этого не меняется
+      var f = i < Math.max(S.idx, S.reached || 0) ? 1 : S.exSec[i] / EXERCISE_SEC;
+      if (i === S.idx) f = S.phase === 'rest' ? 1 : Math.max(S.exSec[i] / EXERCISE_SEC, 1 - S.left / S.len);
       segs[i].firstChild.style.transform = 'scaleX(' + Math.min(1, f) + ')';
     }
   }
@@ -778,5 +780,4 @@
 })();
 </script>
 </body>
-</html>
 </html>
