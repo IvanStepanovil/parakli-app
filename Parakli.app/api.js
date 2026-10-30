@@ -19,8 +19,7 @@
     return fetch(API_BASE + path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
-      body: JSON.stringify(payload),
-      keepalive: true   // запрос дойдёт до сервера, даже если пользователь закрыл приложение
+      body: JSON.stringify(payload)
     }).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (d) {
         return { ok: r.ok, status: r.status, data: d };
@@ -94,25 +93,34 @@
 
     // Сохранение завершённой тренировки. Сначала кладём в очередь на устройстве, потом отправляем:
     // если связи нет, тренировка уйдёт при следующей попытке (сервер дубли по session_id не создаёт)
+    // Возвращает результат отправки этой тренировки: { ok, status, error }
     saveWorkout: function (w) {
       var q = readQueue().filter(function (x) { return x.session_id !== w.session_id; });
       q.push(w); writeQueue(q);
-      return Parakli.flushWorkouts();
+      return Parakli.flushWorkouts().then(function (res) {
+        return res[w.session_id] || { ok: false, status: 0, error: 'not_sent' };
+      });
     },
+    // Отправляет все тренировки из очереди. Возвращает { session_id: результат }
     flushWorkouts: function () {
-      var q = readQueue();
+      var q = readQueue(), res = {};
       return q.reduce(function (p, w) {
         return p.then(function () {
           return call('/api/workout/save', w).then(function (r) {
+            res[w.session_id] = { ok: r.ok, status: r.status, error: (r.data && r.data.error) || '' };
+            if (!r.ok) console.warn('Тренировка не сохранена:', r.status, r.data);
             // Ушло (или сервер отклонил как неверное) — убираем из очереди; ошибка сервера/сети — оставляем
             if (r.ok || r.status === 400) writeQueue(readQueue().filter(function (x) { return x.session_id !== w.session_id; }));
+          }, function (e) {
+            res[w.session_id] = { ok: false, status: 0, error: 'network' };   // нет связи с сервером
+            console.warn('Тренировка не отправлена (сеть):', e);
           });
         });
-      }, Promise.resolve()).catch(function () {});
+      }, Promise.resolve()).then(function () { return res; });
     },
     // Статистика для профиля: { days: [7 чисел, секунды], this_week, prev_week }
     getStats: function () {
-      return Parakli.flushWorkouts().then(function () { return call('/api/stats'); });
+      return Parakli.flushWorkouts().then(function () { return call('/api/stats'); }, function () { return call('/api/stats'); });
     },
 
     // Копия профиля на устройстве: страницы показывают имя и аватарку сразу, а свежие данные подтягиваются в фоне
