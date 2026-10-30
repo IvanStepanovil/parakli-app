@@ -282,7 +282,7 @@
 
 <div class="overlay" id="exitOverlay" role="dialog" aria-modal="true">
   <div class="dialog">
-    <p>Вы хотите выйти из тренировки? Незавершённая тренировка не будет сохранена как завершённая.</p>
+    <p>Вы хотите выйти из тренировки? Время, которое вы уже позанимались, сохранится в профиле.</p>
     <div class="btns">
       <button class="stay" id="exitStay" type="button">Продолжить тренировку</button>
       <button class="leave" id="exitLeave" type="button">Выйти</button>
@@ -311,17 +311,17 @@
   // Чтобы подключить фото, положите файл в папку «Фото» и впишите путь, например 'Фото/Энциклопедия.png'
   var SCREEN_BACKGROUND = 'Фото/Фон главного экрана.png';   // общий фон всех экранов раздела
   var MENU_IMAGES = {
-    encyclopedia: 'Фото/Фон энциклопедии.png',   // например 'Фото/Энциклопедия.png'
-    workouts: 'Фото/Тренировка.png'        // например 'Фото/Тренировки.png'
+    encyclopedia: '',   // например 'Фото/Энциклопедия.png'
+    workouts: ''        // например 'Фото/Тренировки.png'
   };
   var ZONE_IMAGES = {   // например 'Фото/Зона Шея и плечи.png', 'Фото/Зона Спина.png' …
-    neck: 'тренировки база/Шея и плечи.png', back: 'тренировки база/Спина.png', face: 'тренировки база/Лицо.png', arms: 'тренировки база/Руки.png', calves: 'тренировки база/Икры.png', thighs: 'тренировки база/Бёдра.png', feet: 'тренировки база/Стопы.png'
+    neck: '', back: '', face: '', arms: '', calves: '', thighs: '', feet: ''
   };
   var TOOL_IMAGES = {
-    ball4: 'Фото/Мяч 4см1.png', ball6: 'Фото/Мяч 6см1.png', peanut: 'Фото/Арахис1.png'
+    ball4: 'Фото/Мяч 4см.png', ball6: 'Фото/Мяч 6см.png', peanut: 'Фото/Арахис.png'
   };
-  var REST_IMAGE = 'Фото/Отдых.png';         // фото на экране отдыха, например 'Фото/Отдых.png'
-  var COMPLETION_IMAGE = 'Фото/Завершение.png';   // фон карточки «Ты молодец!», например 'Фото/Завершение.png'
+  var REST_IMAGE = '';         // фото на экране отдыха, например 'Фото/Отдых.png'
+  var COMPLETION_IMAGE = '';   // фон карточки «Ты молодец!», например 'Фото/Завершение.png'
 
   var ZONES = [
     { id: 'neck', name: 'Шея и плечи' }, { id: 'back', name: 'Спина' },
@@ -588,7 +588,7 @@
   function finish() {
     S.phase = 'done'; S.paused = true; S.finishedAt = Date.now();
     persist();
-    saveResult();
+    saveResult('completed');
     renderDone();
     show('scrDone');
   }
@@ -684,10 +684,14 @@
   }
   requestAnimationFrame(frame);
 
-  // Свернули Telegram или ушли со страницы — ставим на паузу, пользователь сам нажмёт «Продолжить»
+  // Свернули или закрыли Telegram — ставим на паузу и сразу сохраняем уже сделанное время.
+  // Если пользователь вернётся и продолжит, та же тренировка на сервере просто обновится (дубля не будет)
+  function inProgress() { return S && (S.phase === 'exercise' || S.phase === 'rest'); }
+  function saveProgress() { if (inProgress() && activeSec() >= 1) saveResult('stopped'); }
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden && S && (S.phase === 'exercise' || S.phase === 'rest') && !S.paused) setPaused(true);
+    if (document.hidden && inProgress()) { if (!S.paused) setPaused(true); saveProgress(); }
   });
+  window.addEventListener('pagehide', saveProgress);
 
   /* Выход из тренировки */
   var pausedBeforeExit = false;
@@ -701,6 +705,7 @@
   });
   $('exitLeave').addEventListener('click', function () {
     $('exitOverlay').classList.remove('open');
+    saveProgress();   // недоделанная тренировка тоже идёт в профиль — по фактически сделанному времени
     S = null; store(SESSION_KEY, null);
     renderSetup(); show('scrSetup');
   });
@@ -709,11 +714,12 @@
   function activeSec() { return S.exSec.reduce(function (a, b) { return a + b; }, 0); }
   function completedCount() { return S.doneEx.filter(Boolean).length; }
 
-  function saveResult() {
+  // status: 'completed' — дошли до конца, 'stopped' — вышли или закрыли приложение раньше
+  function saveResult(status) {
     // Отправка идёт через очередь в api.js: если нет связи, результат уйдёт при следующем открытии.
-    // Повторная отправка той же тренировки (тот же session_id) на сервере дубль не создаёт.
+    // Повторная отправка той же тренировки (тот же session_id) на сервере дубль не создаёт, а обновляет её.
     Parakli.saveWorkout({
-      session_id: S.id, duration: S.duration, level: S.level, tool: S.tool,
+      session_id: S.id, duration: S.duration, level: S.level, tool: S.tool, status: status,
       planned: S.planned,
       completed: completedCount(),
       active_seconds: Math.round(activeSec()),
@@ -741,7 +747,7 @@
   var saved = load(SESSION_KEY);
   if (saved && saved.list && saved.list.length && saved.phase) {
     S = saved;
-    if (S.phase === 'done') { saveResult(); renderDone(); show('scrDone'); }
+    if (S.phase === 'done') { saveResult('completed'); renderDone(); show('scrDone'); }
     else {
       // Вернулись к незавершённой тренировке — открываем её на паузе
       S.paused = true;
@@ -754,5 +760,4 @@
 })();
 </script>
 </body>
-</html>
 </html>
