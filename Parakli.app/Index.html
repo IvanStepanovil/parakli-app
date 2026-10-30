@@ -6,6 +6,7 @@
 <title>Паракли — личный кабинет</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="api.js"></script>
+<script src="documents.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
@@ -102,6 +103,8 @@
   label.box { cursor: pointer; position: relative; }
   label.box::after { content: ""; position: absolute; inset: -8px; }   /* увеличенная область нажатия */
   .check:has(button) { cursor: default; }
+  .check-text { flex: 1; min-width: 0; }
+  .check-text .doc-link { display: inline; }
   .doc-link {
     font: inherit; line-height: inherit; color: inherit; text-align: left; background: none; border: 0; padding: 0; cursor: pointer;
     text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 4px;
@@ -131,9 +134,20 @@
   }
   .doc-x svg { width: 18px; height: 18px; stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: round; }
   .doc-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 20px 12px; }
-  .doc-body h3 { margin: 16px 0 4px; font-family: var(--serif); font-weight: 600; font-size: 19px; }
-  .doc-body p { margin: 0 0 6px; font-size: 15px; line-height: 1.55; color: #3d3226; }
-  .doc-body p.note { margin-top: 18px; font-size: 13px; color: var(--muted); font-style: italic; }
+  .doc-head .kicker { display: block; margin-bottom: 6px; font-family: var(--sans); font-weight: 500; font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold-dark, #8c6330); }
+  .doc-edition { display: inline-block; margin: 0 20px 6px; padding: 4px 11px; border-radius: 10px; font-size: 12.5px; color: #8c6330; background: rgba(232,214,184,.7); }
+  .doc-body { counter-reset: none; }
+  .doc-body h3 { display: flex; align-items: baseline; gap: 10px; margin: 22px 0 8px; padding-top: 16px; border-top: 1px solid rgba(185,138,82,.25); font-family: var(--serif); font-weight: 600; font-size: 20px; line-height: 1.2; }
+  .doc-body h3 .n { flex: none; display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font-family: var(--sans); font-weight: 500; font-size: 13px; color: #fff; background: linear-gradient(160deg, #b98a52, #8c6330); transform: translateY(-2px); }
+  .doc-body p { margin: 0 0 10px; font-size: 15px; line-height: 1.6; color: #3d3226; }
+  .doc-body p.lead { padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.65); box-shadow: inset 0 0 0 1px rgba(185,138,82,.22); font-size: 14.5px; }
+  .doc-body ul { list-style: none; margin: 4px 0 12px; padding: 0; }
+  .doc-body li { position: relative; margin: 0 0 8px; padding-left: 20px; font-size: 15px; line-height: 1.55; color: #3d3226; }
+  .doc-body li::before { content: ""; position: absolute; left: 4px; top: .62em; width: 7px; height: 7px; border-radius: 50%; background: #b98a52; }
+  .doc-body a, .doc-body .xref { color: #8c6330; text-decoration: underline; text-decoration-color: rgba(185,138,82,.6); text-underline-offset: 3px; word-break: break-word; }
+  .doc-body .final { margin-top: 22px; padding: 16px; border-radius: 18px; background: rgba(232,214,184,.45); }
+  .doc-body .final h3 { margin-top: 0; padding-top: 0; border-top: 0; }
+  .doc-body .final p:last-child { margin-bottom: 0; }
   .doc-foot { padding: 10px 16px 16px; }
   .doc-ok {
     display: block; width: 100%; height: 52px; border: 0; border-radius: 16px; cursor: pointer;
@@ -209,18 +223,19 @@
     <input id="city" type="text" placeholder="Город" autocomplete="off" maxlength="60" required>
   </div>
  
-  <!-- 1. Обязательное: нажатие на квадрат отмечает галочку, нажатие на текст открывает документ -->
+  <!-- Нажатие на квадрат отмечает галочку, нажатие на подчёркнутый текст открывает документ -->
+  <!-- 1. Обязательное: документы 01 и 03 -->
   <div class="check">
     <input type="checkbox" id="consent">
-    <label class="box" for="consent" aria-label="Я согласен(а) с обработкой персональных данных"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></label>
-    <button type="button" class="doc-link" data-doc="privacy">Я согласен(а) с обработкой<br>персональных данных</button>
+    <label class="box" for="consent" aria-label="Я согласен(а) с обработкой персональных данных и политикой обработки персональных данных"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></label>
+    <span class="check-text">Я согласен(а) с <button type="button" class="doc-link" data-doc="consent">обработкой персональных данных</button>, <button type="button" class="doc-link" data-doc="policy">политикой обработки персональных данных</button></span>
   </div>
 
-  <!-- 2. Обязательное -->
+  <!-- 2. Обязательное: документ 04 -->
   <div class="check">
     <input type="checkbox" id="offer">
-    <label class="box" for="offer" aria-label="Я принимаю условия оферты"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></label>
-    <button type="button" class="doc-link" data-doc="offer">Я принимаю условия оферты</button>
+    <label class="box" for="offer" aria-label="Я принимаю условия пользовательского соглашения"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></label>
+    <span class="check-text">Я принимаю условия <button type="button" class="doc-link" data-doc="terms">пользовательского соглашения</button></span>
   </div>
 
   <!-- 3. Обязательное: подтверждение возраста -->
@@ -230,14 +245,13 @@
     <span>Подтверждаю, что мне<br>исполнилось 14 лет</span>
   </label>
 
-  <!-- 4. Необязательное: по умолчанию не отмечено -->
-  <label class="check">
+  <!-- 4. Необязательное, по умолчанию не отмечено: документ 02 -->
+  <div class="check">
     <input type="checkbox" id="ads">
-    <span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
-    <span>Соглашаюсь на получение<br>рекламной рассылки</span>
-  </label>
+    <label class="box" for="ads" aria-label="Соглашаюсь на получение рекламной рассылки"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></label>
+    <span class="check-text">Соглашаюсь на получение <button type="button" class="doc-link" data-doc="ads">рекламной рассылки</button></span>
+  </div>
 
-  
   <button class="btn" id="submit" type="button" disabled>Продолжить</button>
   <div class="msg" id="msg" role="alert"></div>
 </main>
@@ -246,9 +260,10 @@
 <div class="doc-back" id="docModal" hidden>
   <div class="doc-sheet" role="dialog" aria-modal="true" aria-labelledby="docTitle">
     <div class="doc-head">
-      <h2 id="docTitle"></h2>
+      <h2 id="docTitle"><span class="kicker" id="docKicker"></span><span id="docTitleText"></span></h2>
       <button type="button" class="doc-x" id="docX" aria-label="Закрыть"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
+    <div><span class="doc-edition" id="docEdition"></span></div>
     <div class="doc-body" id="docBody"></div>
     <div class="doc-foot"><button type="button" class="doc-ok" id="docOk">Закрыть</button></div>
   </div>
@@ -380,37 +395,35 @@
   });
 
   /* ---------- Окно с документом ---------- */
-  // ЗАГЛУШКИ текстов. Когда будут готовы утверждённые документы, замените содержимое здесь.
-  var DOCS = {
-    privacy: {
-      title: 'Согласие на обработку персональных данных',
-      sections: [
-        ['1. Кто обрабатывает данные', 'Оператором персональных данных выступает компания «Паракли» (далее — Компания). Этот документ описывает, какие данные мы собираем в мини-приложении и для чего.'],
-        ['2. Какие данные мы собираем', 'При регистрации мы получаем ваше имя, фамилию, номер телефона, адрес электронной почты и город, а также идентификатор и имя пользователя в Telegram. С вашим личным кабинетом связываются выбранная аватарка и сведения об использовании приложения.'],
-        ['3. Зачем нам эти данные', 'Мы используем их, чтобы создать и поддерживать личный кабинет, открывать доступ к тренировкам и полезным материалам, связываться с вами по вопросам сервиса и поддержки и улучшать работу приложения.'],
-        ['4. Хранение и защита', 'Данные хранятся на защищённых серверах и доступны только уполномоченным сотрудникам. Мы принимаем технические и организационные меры, чтобы защитить их от потери и несанкционированного доступа.'],
-        ['5. Передача третьим лицам', 'Мы не продаём ваши данные и не передаём их третьим лицам, кроме случаев, когда это необходимо для работы сервиса или предусмотрено законом.'],
-        ['6. Ваши права', 'Вы можете в любой момент посмотреть и изменить свои данные в разделе «Мои данные», а также запросить их удаление или отозвать согласие, обратившись в поддержку через раздел «Помощь».'],
-        ['7. Рекламные сообщения', 'Рекламную рассылку мы отправляем только тем, кто отдельно отметил на неё согласие. Это согласие не обязательно для регистрации и может быть отозвано в любой момент.'],
-        ['8. Срок хранения', 'Данные хранятся, пока действует ваш личный кабинет, или до отзыва согласия, если иное не требуется законом.']
-      ],
-      note: 'Текст-заглушка. Окончательная редакция документа будет опубликована до запуска приложения.'
-    },
-    offer: {
-      title: 'Условия оферты',
-      sections: [
-        ['1. Предмет', 'Настоящая оферта определяет условия использования мини-приложения «Паракли» в Telegram: личного кабинета, тренировок, полезных материалов и каталога товаров.'],
-        ['2. Регистрация', 'Для доступа вы создаёте личный кабинет и указываете достоверные данные. Вы отвечаете за сохранность доступа к своему Telegram-аккаунту.'],
-        ['3. Порядок использования', 'Приложение предназначено для личного некоммерческого использования. Нельзя копировать материалы, нарушать работу сервиса и использовать его в противоправных целях.'],
-        ['4. Здоровье и безопасность', 'Материалы и упражнения носят информационный характер и не заменяют консультацию врача. При болях, травмах и хронических заболеваниях перед занятиями посоветуйтесь со специалистом. Занимайтесь в комфортном темпе и прекращайте упражнение при дискомфорте или боли.'],
-        ['5. Права на материалы', 'Тексты, фотографии, логотип и другие материалы принадлежат Компании и защищены законом. Использовать их можно только внутри приложения.'],
-        ['6. Ответственность', 'Компания старается обеспечить бесперебойную работу, но не гарантирует отсутствие технических сбоев и не отвечает за временную недоступность сервиса.'],
-        ['7. Изменение условий', 'Компания может обновлять условия оферты. Актуальная версия всегда доступна в приложении. Продолжая пользоваться сервисом, вы принимаете изменения.'],
-        ['8. Связь', 'По любым вопросам обращайтесь в поддержку через раздел «Помощь».']
-      ],
-      note: 'Текст-заглушка. Окончательная редакция документа будет опубликована до запуска приложения.'
+  // Тексты документов лежат в documents.js (window.PARAKLI_DOCS)
+  var DOCS = window.PARAKLI_DOCS || {};
+  var KICKERS = { consent: 'Документ 01', ads: 'Документ 02', policy: 'Документ 03', terms: 'Документ 04' };
+
+  // Текст → узлы: почта и ссылки кликабельные, упоминание Политики открывает документ 03
+  var LINK_RE = /([\w.+-]+@[\w-]+\.[\w.]+\w)|(https?:\/\/[^\s;,)]+)|(Политик[аиойуе]{1,2} обработки персональных данных(?: «Паракли»)?)/g;
+  function richText(el, text, key) {
+    var last = 0, m;
+    LINK_RE.lastIndex = 0;
+    while ((m = LINK_RE.exec(text))) {
+      if (m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
+      var a;
+      if (m[1]) { a = document.createElement('a'); a.href = 'mailto:' + m[1]; a.textContent = m[1]; }
+      else if (m[2]) {
+        a = document.createElement('a'); a.href = m[2]; a.textContent = m[2]; a.target = '_blank'; a.rel = 'noopener';
+        a.addEventListener('click', function (e) {          // ссылки на t.me открываем внутри Telegram
+          var tg = window.Telegram && window.Telegram.WebApp;
+          if (tg && tg.openTelegramLink && /^https:\/\/t\.me\//.test(this.href)) { e.preventDefault(); tg.openTelegramLink(this.href); }
+        });
+      } else if (key !== 'policy') {
+        a = document.createElement('a'); a.href = '#'; a.className = 'xref'; a.textContent = m[3];
+        a.addEventListener('click', function (e) { e.preventDefault(); openDoc('policy', docOpener); });
+      } else { a = document.createTextNode(m[3]); }
+      el.appendChild(a);
+      last = m.index + m[0].length;
     }
-  };
+    if (last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
+    return el;
+  }
 
   var docModal = $('docModal'), docTimer = null, docOpener = null;
 
@@ -418,15 +431,32 @@
     var d = DOCS[key];
     if (!d) return;
     clearTimeout(docTimer);
-    $('docTitle').textContent = d.title;
-    var body = $('docBody');
+    $('docKicker').textContent = KICKERS[key] || '';
+    $('docTitleText').textContent = d.title;
+    $('docEdition').textContent = d.edition || '';
+    $('docEdition').hidden = !d.edition;
+    var body = $('docBody'), box = body, list = null, first = true;
     body.textContent = '';
-    d.sections.forEach(function (sec) {
-      var h = document.createElement('h3'); h.textContent = sec[0];
-      var p = document.createElement('p'); p.textContent = sec[1];
-      body.appendChild(h); body.appendChild(p);
+    var lastH = -1;
+    d.blocks.forEach(function (b, i) { if (b[0] === 'h') lastH = i; });
+    d.blocks.forEach(function (b, i) {
+      if (b[0] !== 'li') list = null;
+      if (b[0] === 'h') {
+        if (i === lastH && /Подтверждение/.test(b[2])) { box = document.createElement('div'); box.className = 'final'; body.appendChild(box); }
+        var h = document.createElement('h3');
+        var n = document.createElement('span'); n.className = 'n'; n.textContent = b[1];
+        h.appendChild(n); h.appendChild(document.createTextNode(b[2]));
+        box.appendChild(h);
+      } else if (b[0] === 'li') {
+        if (!list) { list = document.createElement('ul'); box.appendChild(list); }
+        list.appendChild(richText(document.createElement('li'), b[1], key));
+      } else {
+        var p = richText(document.createElement('p'), b[1], key);
+        if (first && d.blocks[0][0] === 'p') p.className = 'lead';   // вступление — в карточке
+        box.appendChild(p);
+      }
+      first = false;
     });
-    if (d.note) { var n = document.createElement('p'); n.className = 'note'; n.textContent = d.note; body.appendChild(n); }
     body.scrollTop = 0;
     docOpener = opener || null;
     docModal.hidden = false;
@@ -453,7 +483,7 @@
     if (docModal.hidden) return;
     if (e.key === 'Escape') { closeDoc(); return; }
     if (e.key === 'Tab') {                                   // фокус не уходит за пределы окна
-      var f = [$('docX'), $('docOk')], i = f.indexOf(document.activeElement);
+      var f = Array.prototype.slice.call(docModal.querySelectorAll('button, a[href]')), i = f.indexOf(document.activeElement);
       e.preventDefault();
       f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus();
     }
