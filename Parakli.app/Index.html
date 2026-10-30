@@ -519,6 +519,11 @@
       age_confirmed: $('age').checked,   // подтверждение, что пользователю есть 14 лет
       ads_consent: $('ads').checked      // согласие на рекламную рассылку
     }).then(function (r) {
+      if (r.status === 409 && r.data && r.data.error === 'signed_out_account') {
+        sending = false; validate(false);
+        msg.textContent = 'У этого Telegram уже есть аккаунт. Вернитесь назад и нажмите «Войти».';
+        return;
+      }
       if (r.ok || r.status === 409) { Parakli.markVerified(); goMain(); return; }
       sending = false; validate(false);
       if (r.status === 401) {
