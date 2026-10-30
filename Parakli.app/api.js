@@ -19,7 +19,8 @@
     return fetch(API_BASE + path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      keepalive: true   // запрос дойдёт до сервера, даже если пользователь закрыл приложение
     }).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (d) {
         return { ok: r.ok, status: r.status, data: d };
