@@ -200,6 +200,16 @@
       <p class="err" id="err-city" hidden></p>
     </div>
 
+    <div class="field" id="w-password">
+      <label for="f-password">Пароль</label>
+      <div class="box">
+        <svg viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg>
+        <input id="f-password" type="text" readonly maxlength="64" autocomplete="new-password" autocapitalize="none" spellcheck="false" aria-describedby="err-password">
+        <button class="pen" type="button" data-for="f-password" aria-label="Изменить пароль"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
+      </div>
+      <p class="err" id="err-password" hidden></p>
+    </div>
+
     <button class="save" id="save" type="button">Сохранить изменения</button>
   </section>
 </main>
@@ -249,7 +259,8 @@
     phone: 'Введите номер телефона: от 7 до 15 цифр.',
     email: 'Введите корректный e-mail, например name@mail.ru.',
     city: 'Введите город (от 2 символов).',
-    avatar_id: 'Выберите одну из доступных аватарок.'
+    avatar_id: 'Выберите одну из доступных аватарок.',
+    password: 'Пароль: от 6 до 64 символов, без пробелов в начале и в конце.'
   };
   var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -294,8 +305,27 @@
     Parakli.showAvatarFile(img, file, fallback);
   }
 
+  /* ---------- Пароль: показываем звёздочки, по нажатию — ввод нового ---------- */
+  var pwEditing = false;
+  function showPasswordMask(u) {
+    var inp = $('f-password');
+    pwEditing = false; inp.readOnly = true;
+    inp.value = u && u.has_password ? '*******' : '';
+    inp.placeholder = u && u.has_password ? '' : 'Не задан — нажмите, чтобы задать';
+  }
+  function startPasswordEdit() {
+    if (pwEditing) return;
+    var inp = $('f-password');
+    pwEditing = true; inp.readOnly = false; inp.value = '';
+    inp.placeholder = 'Новый пароль (от 6 символов)';
+  }
+  $('f-password').addEventListener('focus', startPasswordEdit);
+  $('f-password').addEventListener('click', startPasswordEdit);
+  $('f-password').addEventListener('input', function () { touched = true; clearError('password'); });
+
   function showSaved(u) {
     $('fullName').textContent = fullName(u);
+    if (!pwEditing) showPasswordMask(u);
     if (pendingAvatar !== null || pendingPhoto) return;   // на экране предпросмотр выбранного, не затираем
     if (u.avatar_file) showCustom(u.avatar_file);
     else setAvatarImg(parseInt(u.avatar_id, 10));
@@ -475,6 +505,12 @@
       email: v.email, city: v.city
     };
     if (pendingAvatar !== null) payload.avatar_id = pendingAvatar;
+    var newPw = pwEditing ? $('f-password').value : '';
+    clearError('password');
+    if (newPw) {
+      if (newPw.length < 6 || newPw.length > 64 || newPw.trim() !== newPw) { setError('password'); $('f-password').focus(); toast('Проверьте выделенные поля.', true); return; }
+      payload.password = newPw;
+    }
 
     saving = true;
     var btn = $('save'); btn.disabled = true; btn.textContent = 'Сохраняем…';
@@ -483,6 +519,7 @@
       if (r.ok && r.data && r.data.user) {
         saved = r.data.user;
         pendingAvatar = null;
+        showPasswordMask(saved);
         fillForm(saved);
         if (!pendingPhoto) {
           showSaved(saved);
@@ -537,7 +574,7 @@
       if (!touched) fillForm(saved);   // если пользователь уже начал вводить, его ввод не затираем
       showSaved(saved);
     } else if (r.status === 401 || (r.ok && !r.data.registered)) {
-      location.replace('index.html' + location.search);
+      location.replace('Index.html' + location.search);
     } else if (!cached) {
       toast('Не удалось загрузить данные.', true);
     }
@@ -547,6 +584,8 @@
 })();
 </script>
 </body>
+</html>
+
 </html>
 
 </html>
