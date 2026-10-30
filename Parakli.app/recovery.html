@@ -166,6 +166,8 @@
   .motiv { margin-top: 14px; min-height: 170px; padding: 22px; border-radius: 22px; display: flex; align-items: center; box-shadow: 0 8px 20px rgba(120,88,40,.15); }
   .motiv.ph { background-image: linear-gradient(180deg, #f7e2c6 0%, #e9c39a 45%, #b98a62 100%); }
   .motiv p { margin: 0; font-family: var(--serif); font-weight: 600; font-size: clamp(22px, 6.6vw, 27px); line-height: 1.2; }
+  .savest { margin: 12px 0 0; text-align: center; font-size: 13.5px; color: var(--muted); }
+  .savest.err { color: #a2412b; }
   .ghost-btn { display: block; width: 100%; height: 52px; margin-top: 10px; border-radius: 26px; text-align: center; font-size: 16px; background: rgba(255,251,244,.7); box-shadow: inset 0 0 0 1px rgba(140,99,48,.35); }
   .done .main-btn { margin-top: 16px; }
 
@@ -275,6 +277,7 @@
     <div><svg viewBox="0 0 24 24"><path d="M3 9c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/></svg><b id="dEx">0</b><span id="dExL">упражнений</span></div>
     <div><svg viewBox="0 0 24 24"><path d="M5 20v-4M10 20v-8M15 20v-12M20 20V4"/></svg><b id="dLvl"></b><span>режим</span></div>
   </div>
+  <p class="savest" id="saveStatus"></p>
   <div class="motiv ph" id="motiv"><p>Ты молодец!<br>Это важный шаг<br>заботы о себе.</p></div>
   <button class="main-btn" id="againBtn" type="button">К новой тренировке <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
   <button class="ghost-btn" id="homeBtn" type="button">На главную</button>
@@ -588,7 +591,7 @@
   function finish() {
     S.phase = 'done'; S.paused = true; S.finishedAt = Date.now();
     persist();
-    saveResult('completed');
+    saveResult('completed').then(showSaveStatus);
     renderDone();
     show('scrDone');
   }
@@ -687,7 +690,7 @@
   // Свернули или закрыли Telegram — ставим на паузу и сразу сохраняем уже сделанное время.
   // Если пользователь вернётся и продолжит, та же тренировка на сервере просто обновится (дубля не будет)
   function inProgress() { return S && (S.phase === 'exercise' || S.phase === 'rest'); }
-  function saveProgress() { if (inProgress() && activeSec() >= 1) saveResult('stopped'); }
+  function saveProgress() { return inProgress() && activeSec() >= 1 ? saveResult('stopped') : Promise.resolve(null); }
   document.addEventListener('visibilitychange', function () {
     if (document.hidden && inProgress()) { if (!S.paused) setPaused(true); saveProgress(); }
   });
@@ -705,7 +708,8 @@
   });
   $('exitLeave').addEventListener('click', function () {
     $('exitOverlay').classList.remove('open');
-    saveProgress();   // недоделанная тренировка тоже идёт в профиль — по фактически сделанному времени
+    // недоделанная тренировка тоже идёт в профиль — по фактически сделанному времени
+    saveProgress().then(function (r) { if (r && !r.ok) toast(saveErrorText(r)); });
     S = null; store(SESSION_KEY, null);
     renderSetup(); show('scrSetup');
   });
@@ -718,7 +722,7 @@
   function saveResult(status) {
     // Отправка идёт через очередь в api.js: если нет связи, результат уйдёт при следующем открытии.
     // Повторная отправка той же тренировки (тот же session_id) на сервере дубль не создаёт, а обновляет её.
-    Parakli.saveWorkout({
+    return Parakli.saveWorkout({
       session_id: S.id, duration: S.duration, level: S.level, tool: S.tool, status: status,
       planned: S.planned,
       completed: completedCount(),
@@ -729,7 +733,21 @@
     });
   }
 
+  // Понятный текст ошибки сохранения (код поможет найти причину)
+  function saveErrorText(r) {
+    var why = r.status === 0 ? 'нет связи с сервером' :
+              r.status === 401 ? 'сервер не узнал пользователя Telegram' :
+              r.status === 400 ? 'сервер отклонил данные' : 'ошибка сервера';
+    return 'Время не сохранено: ' + why + ' (код ' + r.status + (r.error ? ', ' + r.error : '') + ').';
+  }
+  function showSaveStatus(r) {
+    var el = $('saveStatus');
+    el.classList.toggle('err', !r.ok);
+    el.textContent = r.ok ? 'Время сохранено в профиле ✓' : saveErrorText(r);
+  }
+
   function renderDone() {
+    $('saveStatus').textContent = 'Сохраняем результат…'; $('saveStatus').classList.remove('err');
     var sec = Math.round(activeSec()), n = completedCount();
     $('dTime').textContent = Math.floor(sec / 60) + ':' + ('0' + sec % 60).slice(-2);
     $('dEx').textContent = n + ' из ' + S.planned;
@@ -747,7 +765,7 @@
   var saved = load(SESSION_KEY);
   if (saved && saved.list && saved.list.length && saved.phase) {
     S = saved;
-    if (S.phase === 'done') { saveResult('completed'); renderDone(); show('scrDone'); }
+    if (S.phase === 'done') { saveResult('completed').then(showSaveStatus); renderDone(); show('scrDone'); }
     else {
       // Вернулись к незавершённой тренировке — открываем её на паузе
       S.paused = true;
@@ -760,4 +778,5 @@
 })();
 </script>
 </body>
+</html>
 </html>
