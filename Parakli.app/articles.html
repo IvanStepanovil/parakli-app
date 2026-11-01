@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Полезные статьи — Паракли</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="api.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Общий фон страницы — замените путь на свой, если нужен другой файл */
+    --img-bg: url('Фото/Фон\ главного\ экрана.webp');
+
+    --ink: #1c1510;
+    --muted: #8a7a68;
+    --serif: "Cormorant Garamond", "Times New Roman", serif;
+    --sans: "Jost", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-t: calc(env(safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh; min-height: 100dvh;
+    font-family: var(--sans); color: var(--ink);
+    background-color: #f1e4cf;
+    background-image: var(--img-bg);
+    background-size: cover; background-position: center top;
+    background-repeat: no-repeat; background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; text-align: left; }
+  button:focus-visible { outline: 3px solid rgba(185,138,82,.55); outline-offset: 2px; }
+
+  .screen { max-width: 480px; margin: 0 auto; padding: calc(var(--safe-t) + 8px) 12px calc(var(--safe-b) + 28px); }
+  [hidden] { display: none !important; }
+
+  .back { width: 40px; height: 40px; display: grid; place-items: center; margin-left: -6px; }
+  .back svg { width: 24px; height: 24px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  h1 {
+    margin: 4px 4px 14px;
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(44px, 13.5vw, 60px); line-height: 1.05; letter-spacing: -.01em;
+  }
+
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .card {
+    display: flex; align-items: center; gap: 14px; width: 100%;
+    padding: 6px 14px 6px 6px; border-radius: 16px;
+    background: rgba(255,251,244,.72);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 6px 16px rgba(120,88,40,.10), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+  .thumb { flex: none; width: 92px; height: 104px; border-radius: 12px; overflow: hidden; background: rgba(232,214,184,.65); }
+  .thumb img, .hero img { display: block; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .25s; }
+  .thumb img.ready, .hero img.ready { opacity: 1; }
+  .info { flex: 1; min-width: 0; }
+  .info h2 { margin: 0 0 6px; font-family: var(--serif); font-weight: 500; font-size: clamp(18px, 5.4vw, 21px); line-height: 1.18; }
+  .info p { margin: 0; font-size: 12.5px; line-height: 1.3; color: var(--muted); }
+  .chev { flex: none; width: 18px; height: 18px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .status { margin: 24px 6px; text-align: center; font-size: 14px; color: var(--muted); }
+
+  /* Полный текст статьи */
+  .hero { margin: 4px 0 16px; border-radius: 18px; overflow: hidden; background: rgba(232,214,184,.65); aspect-ratio: 16 / 10; }
+  .article h1 { font-size: clamp(30px, 9vw, 38px); line-height: 1.1; margin: 0 4px 14px; }
+  .article .body {
+    padding: 18px 18px 8px; border-radius: 18px;
+    background: rgba(255,251,244,.72);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    box-shadow: 0 6px 16px rgba(120,88,40,.10), inset 0 0 0 1px rgba(255,255,255,.7);
+  }
+  .article .body p { margin: 0 0 14px; font-size: 15.5px; line-height: 1.55; }
+</style>
+</head>
+<body>
+
+<main class="screen">
+  <button class="back" id="back" type="button" aria-label="Назад">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+  </button>
+
+  <!-- Список статей -->
+  <section id="listView">
+    <h1>Полезные статьи</h1>
+    <div class="list" id="list"></div>
+    <p class="status" id="status" hidden></p>
+  </section>
+
+  <!-- Полный текст статьи -->
+  <section class="article" id="articleView" hidden>
+    <div class="hero" id="hero"><img id="heroImg" alt=""></div>
+    <h1 id="aTitle"></h1>
+    <div class="body" id="aBody"></div>
+  </section>
+</main>
+
+<script>
+(function () {
+  /* ================= НАСТРОЙКИ ================= */
+  // Статьи лежат в файле articles.json: чтобы добавить, изменить или удалить статью,
+  // правьте только его (поля: id, title, description, image, text).
+  var ARTICLES_URL = 'articles.json';
+  var PROFILE_PAGE = 'profile.html';
+  /* ============================================== */
+
+  var tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f1e4cf'); tg.setBackgroundColor('#f1e4cf'); } catch (e) {} }
+
+  Parakli.guard();
+
+  var $ = function (id) { return document.getElementById(id); };
+  var NS = 'http://www.w3.org/2000/svg';
+  var articles = [];
+  var listScroll = 0;
+  var openedFromList = false;
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function picture(src, cls, eager) {
+    var box = el('div', cls);
+    var img = document.createElement('img');
+    img.alt = '';
+    img.decoding = 'async';
+    if (eager === false) img.loading = 'lazy';
+    img.onload = function () { img.classList.add('ready'); };
+    img.onerror = function () { img.style.display = 'none'; };
+    img.src = src || '';
+    box.appendChild(img);
+    return box;
+  }
+  function chevron() {
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('class', 'chev');
+    svg.setAttribute('viewBox', '0 0 16 16');
+    var p = document.createElementNS(NS, 'path');
+    p.setAttribute('d', 'M6 3l5 5-5 5');
+    svg.appendChild(p);
+    return svg;
+  }
+
+  function renderList() {
+    var list = $('list');
+    list.textContent = '';
+    articles.forEach(function (a, i) {
+      var card = el('button', 'card');
+      card.type = 'button';
+      card.appendChild(picture(a.image, 'thumb', i < 6));
+      var info = el('div', 'info');
+      info.appendChild(el('h2', '', a.title));
+      info.appendChild(el('p', '', a.description));
+      card.appendChild(info);
+      card.appendChild(chevron());
+      card.addEventListener('click', function () {
+        listScroll = window.scrollY;
+        openedFromList = true;
+        location.hash = encodeURIComponent(a.id);
+      });
+      list.appendChild(card);
+    });
+  }
+
+  function showList() {
+    $('articleView').hidden = true;
+    $('listView').hidden = false;
+    window.scrollTo(0, listScroll);
+  }
+
+  function showArticle(a) {
+    $('listView').hidden = true;
+    $('articleView').hidden = false;
+    var img = $('heroImg');
+    img.style.display = ''; img.classList.remove('ready');
+    img.onload = function () { img.classList.add('ready'); };
+    img.onerror = function () { img.style.display = 'none'; };
+    img.src = a.image || '';
+    $('aTitle').textContent = a.title;
+    var body = $('aBody');
+    body.textContent = '';
+    (a.text || []).forEach(function (t) { body.appendChild(el('p', '', t)); });
+    window.scrollTo(0, 0);
+  }
+
+  function route() {
+    var id = decodeURIComponent(location.hash.replace(/^#/, ''));
+    var a = articles.filter(function (x) { return x.id === id; })[0];
+    if (a) showArticle(a); else showList();
+  }
+
+  /* Назад: из статьи — к списку, из списка — в профиль */
+  function goBack() {
+    if (!$('articleView').hidden) {
+      if (openedFromList) history.back();
+      else { history.replaceState(null, '', location.pathname + location.search); route(); }
+    } else {
+      location.href = PROFILE_PAGE + location.search;
+    }
+  }
+  $('back').addEventListener('click', goBack);
+  window.addEventListener('hashchange', route);
+
+  /* Запасной список: используется, если articles.json не загрузился
+     (например, страница открыта двойным кликом, адрес file:///...).
+     Когда всё работает через сервер, берётся articles.json, а этот список игнорируется.
+     При правке статей в articles.json обновляйте и этот список, если хотите, чтобы они совпадали. */
+  var FALLBACK_ARTICLES = [
+  {
+    "id": "sleep",
+    "title": "Как улучшить сон без сложных ритуалов",
+    "description": "Простые привычки для глубокого и качественного сна.",
+    "image": "Фото/Статья №1.webp",
+    "text": [
+      "Хороший сон начинается не вечером, а с режима. Старайтесь ложиться и вставать примерно в одно и то же время, в том числе в выходные: так организм быстрее привыкает засыпать.",
+      "За час до сна приглушите свет и уберите телефон. Яркий экран мешает мозгу «переключиться» в вечерний режим. Вместо ленты новостей подойдут тёплый душ, чтение или спокойная музыка.",
+      "Проветрите спальню: прохладный воздух (около 18–20 °C) помогает засыпать легче. Тяжёлый ужин и кофе во второй половине дня лучше заменить лёгкой едой и травяным чаем.",
+      "Если не спится, не лежите «через силу». Встаньте, займитесь чем-то спокойным при тусклом свете и вернитесь в кровать, когда почувствуете сонливость."
+    ]
+  },
+  {
+    "id": "neck",
+    "title": "5 простых способов снять напряжение в шее и плечах",
+    "description": "Эффективные упражнения для лёгкости и комфорта.",
+    "image": "Фото/Статья №2.webp",
+    "text": [
+      "Напряжение в шее и плечах чаще всего появляется от долгого сидения в одной позе. Несколько коротких пауз в течение дня помогают куда лучше, чем одно длинное занятие вечером.",
+      "1. Плавные круги плечами: 10 раз вперёд и 10 назад. 2. Наклон головы к плечу с лёгкой задержкой на 20–30 секунд в каждую сторону. 3. Сведение лопаток: на выдохе сожмите их вместе на 5 секунд.",
+      "4. Подбородок к груди: медленно опустите голову и спокойно подышите в этом положении. 5. Самомассаж мячом у стены: прижмите мяч между стеной и зоной около лопатки и мягко покатайте его.",
+      "Двигайтесь без боли и рывков. Если дискомфорт не проходит или появляются онемение и резкая боль, лучше обратиться к врачу."
+    ]
+  },
+  {
+    "id": "recovery",
+    "title": "Восстановление после тяжёлого дня: с чего начать",
+    "description": "Пошаговый план, который поможет вернуть силы и спокойствие.",
+    "image": "Фото/Статья №3.webp",
+    "text": [
+      "После напряжённого дня важно не «добить» себя делами, а дать телу и голове сигнал, что можно замедлиться.",
+      "Шаг 1. Сделайте паузу на 5 минут: стакан воды, несколько глубоких вдохов, плечи вниз. Шаг 2. Выйдите на короткую прогулку или хотя бы откройте окно.",
+      "Шаг 3. Мягко проработайте зоны напряжения: шея, плечи, поясница, стопы. Здесь хорошо работает массажный мяч. Шаг 4. Лёгкий ужин и тёплый душ.",
+      "Шаг 5. Запишите три дела на завтра, чтобы не прокручивать их в голове. Так вечер остаётся вашим."
+    ]
+  },
+  {
+    "id": "morning",
+    "title": "Мягкое движение утром для бодрости и фокуса",
+    "description": "Небольшая практика, которая заряжает энергией на весь день.",
+    "image": "Фото/Статья №4.webp",
+    "text": [
+      "Утренняя практика не обязана быть тренировкой. Пяти–десяти минут мягкого движения достаточно, чтобы разбудить тело и собраться с мыслями.",
+      "Начните ещё в постели: потянитесь, вытянув руки над головой, и сделайте несколько круговых движений коленями. Затем встаньте и сделайте плавный наклон вперёд, позволяя рукам свободно свисать.",
+      "Добавьте «кошку–корову» на коврике, повороты корпуса и несколько глубоких вдохов с поднятыми руками. Двигайтесь в своём темпе, без усилия.",
+      "Стакан воды после зарядки и немного дневного света завершат утро бодро."
+    ]
+  },
+  {
+    "id": "relax",
+    "title": "Как расслабиться за 10 минут дома",
+    "description": "Простые техники для быстрого расслабления и внутреннего баланса.",
+    "image": "Фото/Статья №5.webp",
+    "text": [
+      "Десяти минут достаточно, чтобы заметно снизить уровень напряжения. Главное — выбрать тихое место и отключить уведомления.",
+      "Минуты 1–3: дыхание «4–6». Вдох на четыре счёта, выдох на шесть. Длинный выдох помогает нервной системе успокоиться.",
+      "Минуты 4–7: прогрессивное расслабление. По очереди напрягайте на 5 секунд и расслабляйте стопы, голени, бёдра, живот, руки, плечи и лицо.",
+      "Минуты 8–10: мягкий массаж стоп или шеи мячом. Завершите несколькими спокойными вдохами и вернитесь к делам без спешки."
+    ]
+  }
+];
+
+  function start(data, fromFallback) {
+    articles = Array.isArray(data) ? data : [];
+    renderList();
+    if (!articles.length) { $('status').textContent = 'Статьи скоро появятся.'; $('status').hidden = false; }
+    route();
+  }
+
+  /* Кэш: показываем сохранённый список сразу, а свежий подгружаем в фоне */
+  var CACHE_KEY = 'parakli_articles_v1';
+  function readCache() { try { return localStorage.getItem(CACHE_KEY); } catch (e) { return null; } }
+  function writeCache(txt) { try { localStorage.setItem(CACHE_KEY, txt); } catch (e) {} }
+
+  var cachedTxt = readCache(), shownTxt = null;
+  try { if (cachedTxt) { start(JSON.parse(cachedTxt)); shownTxt = cachedTxt; } } catch (e) { cachedTxt = null; }
+  if (!shownTxt) start(FALLBACK_ARTICLES);   // самый первый запуск: мгновенно показываем встроенный список
+
+  fetch(ARTICLES_URL, { cache: 'no-cache' })   // no-cache: браузер сверяет версию, но не качает файл заново, если он не менялся
+    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    .then(function (txt) {
+      var data = JSON.parse(txt);
+      writeCache(txt);
+      if (txt !== shownTxt) { start(data); shownTxt = txt; }   // перерисовываем, только если список изменился
+    })
+    .catch(function (err) { console.warn('articles.json не загрузился, остался сохранённый список:', err); });
+})();
+</script>
+</body>
+</html>
+
