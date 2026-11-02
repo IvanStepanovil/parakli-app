@@ -380,6 +380,22 @@
   if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor('#f6ecdc'); tg.setBackgroundColor('#f6ecdc'); } catch (e) {} }
 
   var $ = function (id) { return document.getElementById(id); };
+  // Одноразовое сообщение после принудительного выхода из-за смены пароля.
+  try {
+    if (sessionStorage.getItem('parakli_password_changed_notice') === '1') {
+      sessionStorage.removeItem('parakli_password_changed_notice');
+      var notice = document.createElement('div');
+      notice.setAttribute('role', 'alert');
+      notice.style.cssText = 'position:fixed;z-index:9999;top:calc(env(safe-area-inset-top, 0px) + 24px);left:16px;right:16px;max-width:430px;margin:0 auto;background:#f6ecdc;color:#302419;border:1px solid #c39a62;border-radius:20px;box-shadow:0 12px 32px #30241935;padding:20px 40px 20px 18px;font:400 15px/1.5 Jost,sans-serif';
+      notice.textContent = 'Пароль вашего аккаунта был изменён на другом устройстве. Войдите ещё раз с новым паролем.';
+      var closeNotice = document.createElement('button'); closeNotice.textContent = '×';
+      closeNotice.setAttribute('aria-label', 'Закрыть сообщение');
+      closeNotice.style.cssText = 'position:absolute;right:13px;top:8px;background:none;border:0;font-size:28px;color:#8c6330;cursor:pointer';
+      closeNotice.onclick = function() { notice.remove(); };
+      notice.appendChild(closeNotice);
+      document.body.appendChild(notice);
+    }
+  } catch (e) {}
   var fields = ['first_name', 'last_name', 'phone', 'email', 'city', 'password'];
   var btn = $('submit'), msg = $('msg');
 
@@ -691,4 +707,5 @@
 })();
 </script>
 </body>
+</html>
 </html>
