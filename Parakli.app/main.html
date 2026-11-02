@@ -176,6 +176,18 @@
   .dialog .x svg { width: 16px; height: 16px; stroke: var(--muted); fill: none; stroke-width: 2; stroke-linecap: round; }
 
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+  /* Подтверждение номера — те же цвета, типографика и скругления, что у ПАРАКЛИ */
+  .phone-confirm-backdrop { position:fixed; inset:0; z-index:9999; padding:20px; display:flex; align-items:center; justify-content:center; background:rgba(28,21,16,.52); backdrop-filter:blur(3px); }
+  .phone-confirm-card { width:100%; max-width:380px; padding:25px 22px 22px; border-radius:24px; color:var(--ink); background:#f6ecdc; box-shadow:0 18px 48px rgba(56,38,22,.24), inset 0 0 0 1px rgba(255,255,255,.7); }
+  .phone-confirm-card h2 { margin:0 0 11px; font:600 30px/1.05 var(--serif); text-align:center; }
+  .phone-confirm-card p { margin:0 0 17px; font:400 14px/1.5 var(--sans); color:var(--muted); text-align:center; }
+  .phone-confirm-card .phone-confirm-symbol { margin:0 auto 14px; display:grid;place-items:center; width:48px;height:48px; border:1px solid #d2b890; border-radius:50%; color:var(--gold-dark); font-size:24px; }
+  .phone-confirm-card input { display:block; width:100%; padding:13px; background:#fffaf1; border:1px solid #c8ad87; border-radius:13px; color:var(--ink); font:500 17px var(--sans); text-align:center; letter-spacing:.1em; outline-color:var(--gold); }
+  .phone-confirm-card .phone-confirm-action { display:block; width:100%; margin-top:10px; padding:13px 14px; text-align:center; border-radius:14px; background:linear-gradient(140deg,#c39a62,#9a6c34);color:#fff; font:500 15px var(--sans); }
+  .phone-confirm-card .phone-confirm-action:disabled { opacity:.6; }
+  .phone-confirm-card .phone-confirm-later { display:block;width:100%;padding:12px 14px;text-align:center;color:var(--gold-dark);font:500 14px var(--sans); }
+  .phone-confirm-card .phone-confirm-message { min-height:1em; color:var(--gold-dark);font-size:13px; }
 </style>
 </head>
 <body>
@@ -201,7 +213,7 @@
     <button class="card locked" id="card-relax" type="button" data-locked="1">
       <div class="photo" id="p-relax"></div>
       <span class="badge"><svg viewBox="0 0 24 24"><rect x="6" y="11" width="12" height="9" rx="2"/><path d="M8.5 11V8.5a3.5 3.5 0 017 0V11"/></svg></span>
-      <span class="name">Фокусирование</span>
+      <span class="name">Расслабление</span>
       <span class="desc">Ожидается</span>
     </button>
 
@@ -300,12 +312,13 @@
       sessionStorage.setItem(accountKey, '1');
       var panel = document.createElement('div');
       panel.id = 'phoneConfirmPanel';
-      panel.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#0008;display:flex;justify-content:center;align-items:center;padding:20px';
-      panel.innerHTML = '<div style="max-width:380px;width:100%;background:#f6ecdc;border-radius:20px;padding:24px;color:#302419;box-shadow:0 12px 36px #0003">' +
-        '<h2 style="font-size:22px;margin:0 0 12px">Подтвердите телефон</h2>' +
-        '<p style="line-height:1.5">Подтвердите номер, чтобы восстановить пароль при входе с другого устройства. Без подтверждения сброс пароля недоступен.</p>' +
-        '<div id="phoneConfirmCodeArea" style="display:none"><p>Поделитесь своим контактом в чате бота, затем введите присланный код.</p><input id="phoneConfirmCode" inputmode="numeric" maxlength="6" placeholder="6 цифр" style="width:100%;padding:12px;border:1px solid #bda98e;border-radius:10px;box-sizing:border-box"><button id="phoneConfirmCheck" style="margin-top:12px;padding:12px;width:100%">Проверить код</button></div>' +
-        '<p id="phoneConfirmMsg" style="font-size:13px"></p><button id="phoneConfirmStart" style="padding:12px;width:100%">Подтвердить номер</button><button id="phoneConfirmLater" style="padding:12px;width:100%;margin-top:8px">Позже</button></div>';
+      panel.className = 'phone-confirm-backdrop';
+      panel.innerHTML = '<div class="phone-confirm-card" role="dialog" aria-modal="true" aria-labelledby="phoneConfirmTitle">' +
+        '<div class="phone-confirm-symbol" aria-hidden="true">✓</div>' +
+        '<h2 id="phoneConfirmTitle">Подтвердите телефон</h2>' +
+        '<p>Подтвердите номер, чтобы восстановить пароль при входе с другого устройства. Без подтверждения сброс пароля недоступен.</p>' +
+        '<div id="phoneConfirmCodeArea" style="display:none"><p>Поделитесь своим контактом в чате бота, затем введите присланный код.</p><input id="phoneConfirmCode" inputmode="numeric" maxlength="6" placeholder="6 цифр" aria-label="Код подтверждения"><button class="phone-confirm-action" id="phoneConfirmCheck" type="button">Проверить код</button></div>' +
+        '<p class="phone-confirm-message" id="phoneConfirmMsg" role="status"></p><button class="phone-confirm-action" id="phoneConfirmStart" type="button">Подтвердить номер</button><button class="phone-confirm-later" id="phoneConfirmLater" type="button">Позже</button></div>';
       document.body.appendChild(panel);
       panel.querySelector('#phoneConfirmLater').onclick = function () { panel.remove(); };
       panel.querySelector('#phoneConfirmStart').onclick = function () {
@@ -409,4 +422,3 @@
 </script>
 </body>
 </html>
-
