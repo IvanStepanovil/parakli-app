@@ -22,6 +22,7 @@
       body: JSON.stringify(payload)
     }).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (d) {
+        if (r.status === 403 && d && d.reason === 'password_changed') passwordChangedRedirect(d);
         return { ok: r.ok, status: r.status, data: d };
       });
     });
@@ -44,9 +45,24 @@
   function readQueue() { try { var q = JSON.parse(localStorage.getItem(WORKOUT_QUEUE) || '[]'); return Array.isArray(q) ? q : []; } catch (e) { return []; } }
   function writeQueue(q) { try { localStorage.setItem(WORKOUT_QUEUE, JSON.stringify(q)); } catch (e) {} }
 
+  function clearSessionCache() {
+    try {
+      localStorage.removeItem('parakli_user_v1');
+      sessionStorage.removeItem('parakli_verified');
+      Object.keys(sessionStorage).filter(function(k) { return k.indexOf('parakli_phone_prompt_') === 0; }).forEach(function(k) { sessionStorage.removeItem(k); });
+    } catch (e) {}
+  }
+  function passwordChangedRedirect(data) {
+    if (!data || data.reason !== 'password_changed') return false;
+    clearSessionCache();
+    try { sessionStorage.setItem('parakli_password_changed_notice', '1'); } catch (e) {}
+    if (!/\bindex\.html$/i.test(location.pathname)) location.replace('Index.html' + location.search);
+    return true;
+  }
+
   var Parakli = {
     getSession: function () {
-      return call('/api/session').then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
+      return call('/api/session').then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); passwordChangedRedirect(r.data); return r; });
     },
     // Вход в существующий аккаунт с другого Telegram (имя, фамилия, пароль)
     login: function (data) {
@@ -165,7 +181,6 @@
 
     // Если пользователь не зарегистрирован — отправляем на первый экран
     guard: function () {
-      if (Parakli.isVerified()) return;
       Parakli.getSession().then(function (r) {
         if (r.ok && r.data.registered) Parakli.markVerified();
         else location.replace('Index.html' + location.search);
@@ -173,6 +188,19 @@
     }
   };
   window.Parakli = Parakli;
+  // Проверяем отзыв сессии при возвращении в мини-приложение и периодически,
+  // чтобы изменение пароля на другом устройстве сработало без перезагрузки.
+  var checkingRevocation = false;
+  function checkRevocation() {
+    if (checkingRevocation || /\bindex\.html$/i.test(location.pathname)) return;
+    if (document.visibilityState === 'hidden') return;
+    checkingRevocation = true;
+    Parakli.getSession().catch(function () {}).then(function () { checkingRevocation = false; });
+  }
+  document.addEventListener('visibilitychange', checkRevocation);
+  window.addEventListener('focus', checkRevocation);
+  setInterval(checkRevocation, 20000);
+
 
   /* Фоновая подгрузка картинок следующих экранов, пока пользователь читает текущий.
      Когда он перейдёт дальше, картинки уже лежат в кэше и появляются сразу.
