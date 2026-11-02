@@ -250,8 +250,27 @@
     <input id="l_password" type="password" placeholder="Пароль" autocomplete="current-password" maxlength="64">
     <button type="button" class="eye" aria-label="Показать пароль"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
   </div>
+  <button type="button" id="forgotPassword" style="border:0;background:none;color:#7a583a;text-decoration:underline;cursor:pointer;margin:5px 0 12px">Забыли пароль?</button>
   <button class="btn" id="loginBtn" type="button" disabled>Войти</button>
   <div class="msg" id="loginMsg" role="alert"></div>
+</section>
+
+<!-- ===== Восстановление пароля ===== -->
+<section id="scrReset" hidden>
+  <button type="button" class="back" data-go="scrLogin" aria-label="Назад">←</button>
+  <h1>Восстановление пароля</h1>
+  <p class="sub">Укажите данные аккаунта. Код придёт владельцу на подтверждённый Telegram.</p>
+  <div class="field"><input id="resetFirst" placeholder="Имя" maxlength="40"></div>
+  <div class="field"><input id="resetLast" placeholder="Фамилия" maxlength="40"></div>
+  <div class="field"><input id="resetPhone" type="tel" placeholder="Телефон +7..." maxlength="20"></div>
+  <button class="btn" id="resetSend" type="button">Отправить код</button>
+  <div id="resetSecond" hidden>
+    <p class="sub">Если номер подтверждён, код отправлен в Telegram владельца. Он действует 5 минут.</p>
+    <div class="field"><input id="resetCode" inputmode="numeric" maxlength="6" placeholder="Код из Telegram"></div>
+    <div class="field"><input id="resetPassword" type="password" maxlength="64" placeholder="Новый пароль (от 6 символов)"></div>
+    <button class="btn" id="resetFinish" type="button">Сохранить новый пароль</button>
+  </div>
+  <div class="msg" id="resetMsg" role="alert"></div>
 </section>
 
 <!-- ===== Регистрация ===== -->
@@ -381,13 +400,43 @@
   });
 
   /* ---------- Переходы между экранами ---------- */
-  var SCREENS = ['scrWelcome', 'scrRegister', 'scrLogin'];
+  var SCREENS = ['scrWelcome', 'scrRegister', 'scrLogin', 'scrReset'];
   function go(id) {
     SCREENS.forEach(function (s) { $(s).hidden = s !== id; });
     window.scrollTo(0, 0);
   }
   Array.prototype.forEach.call(document.querySelectorAll('[data-go]'), function (b) {
     b.addEventListener('click', function () { go(b.getAttribute('data-go')); });
+  });
+
+  /* ---------- Восстановление пароля ---------- */
+  $('forgotPassword').addEventListener('click', function () {
+    $('resetFirst').value = $('l_first_name').value;
+    $('resetLast').value = $('l_last_name').value;
+    $('resetMsg').textContent = '';
+    $('resetSecond').hidden = true;
+    go('scrReset');
+  });
+  var resetBusy = false;
+  $('resetSend').addEventListener('click', function () {
+    if (resetBusy) return;
+    var data = { first_name: $('resetFirst').value.trim(), last_name: $('resetLast').value.trim(), phone: $('resetPhone').value.trim() };
+    if (!data.first_name || !data.last_name || !/^\+\d[\d\s()-]{6,19}$/.test(data.phone)) { $('resetMsg').textContent = 'Заполните имя, фамилию и телефон.'; return; }
+    resetBusy = true; $('resetSend').disabled = true;
+    Parakli.startPasswordReset(data).then(function(r) {
+      $('resetMsg').textContent = r.ok ? '' : 'Не удалось отправить запрос. Попробуйте позднее.';
+      if (r.ok) $('resetSecond').hidden = false;
+    }).catch(function(){ $('resetMsg').textContent = 'Нет связи с сервером.'; }).finally(function(){ resetBusy = false; $('resetSend').disabled = false; });
+  });
+  $('resetFinish').addEventListener('click', function () {
+    if (resetBusy) return;
+    var data = { first_name: $('resetFirst').value.trim(), last_name: $('resetLast').value.trim(), phone: $('resetPhone').value.trim(), code: $('resetCode').value.trim(), password: $('resetPassword').value };
+    if (!/^\d{6}$/.test(data.code) || data.password.length < 6) { $('resetMsg').textContent = 'Введите 6 цифр кода и новый пароль от 6 символов.'; return; }
+    resetBusy = true; $('resetFinish').disabled = true;
+    Parakli.finishPasswordReset(data).then(function(r) {
+      if (r.ok) { $('resetMsg').textContent = ''; $('l_password').value = ''; go('scrLogin'); $('loginMsg').textContent = 'Пароль изменён. Войдите с новым паролем.'; }
+      else $('resetMsg').textContent = 'Неверный или просроченный код. Проверьте данные.';
+    }).catch(function(){ $('resetMsg').textContent = 'Нет связи с сервером.'; }).finally(function(){ resetBusy = false; $('resetFinish').disabled = false; });
   });
 
   /* ---------- Показать / скрыть пароль ---------- */
@@ -643,4 +692,3 @@
 </script>
 </body>
 </html>
-
