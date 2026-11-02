@@ -55,6 +55,10 @@
     register: function (data) {
       return call('/api/register', data).then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
     },
+    startPhoneVerification: function () { return call('/api/phone/start'); },
+    confirmPhone: function (code) { return call('/api/phone/confirm', { code: code }); },
+    startPasswordReset: function (data) { return call('/api/password/reset/start', data); },
+    finishPasswordReset: function (data) { return call('/api/password/reset/finish', data); },
     // Сохранение страницы «Мои данные»; при успехе обновляем сохранённую копию профиля
     updateProfile: function (data) {
       return call('/api/profile', data).then(function (r) { if (r.ok && r.data && r.data.user) Parakli.cacheUser(r.data.user); return r; });
@@ -93,7 +97,7 @@
         if (r.ok) {
           try {
             ['parakli_user_v1', WORKOUT_QUEUE, 'parakli_rec_session_v2', 'parakli_rec_setup_v2'].forEach(function (k) { localStorage.removeItem(k); });
-            sessionStorage.removeItem('parakli_verified');
+            sessionStorage.removeItem('parakli_verified'); Object.keys(sessionStorage).filter(function(k) { return k.indexOf('parakli_phone_prompt_') === 0; }).forEach(function(k) { sessionStorage.removeItem(k); });
           } catch (e) {}
         }
         return r;
@@ -102,7 +106,7 @@
     // Удаление аккаунта (кнопка в профиле)
     deleteAccount: function () {
       return call('/api/account/delete').then(function (r) {
-        if (r.ok) { try { localStorage.removeItem('parakli_user_v1'); localStorage.removeItem(WORKOUT_QUEUE); sessionStorage.removeItem('parakli_verified'); } catch (e) {} }
+        if (r.ok) { try { localStorage.removeItem('parakli_user_v1'); localStorage.removeItem(WORKOUT_QUEUE); sessionStorage.removeItem('parakli_verified'); Object.keys(sessionStorage).filter(function(k) { return k.indexOf('parakli_phone_prompt_') === 0; }).forEach(function(k) { sessionStorage.removeItem(k); }); } catch (e) {} }
         return r;
       });
     },
