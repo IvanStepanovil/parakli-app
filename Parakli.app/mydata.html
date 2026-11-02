@@ -94,6 +94,21 @@
   .pen svg { width: 18px; height: 18px; fill: none; stroke: var(--gold-dark); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
   .err { margin: 6px 2px 0; font-size: 12.5px; line-height: 1.3; color: var(--danger); }
 
+  /* Управление рекламной рассылкой: оформление в стилистике остальных полей. */
+  .ads-setting { margin-top: 14px; padding: 14px; border: 1px solid rgba(185,138,82,.38);
+    border-radius: 14px; background: rgba(255,255,255,.55); }
+  .ads-setting-line { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+  .ads-setting-title { font-size: 15px; color: var(--ink); line-height: 1.35; }
+  .ads-setting-desc { margin: 7px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.45; }
+  .ads-switch { position: relative; display: inline-flex; flex: 0 0 auto; width: 48px; height: 28px; align-items: center; cursor: pointer; }
+  .ads-switch input { position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; margin: 0; }
+  .ads-switch-track { width: 48px; height: 28px; border-radius: 18px; background: #c7b8a5; transition: background .2s; }
+  .ads-switch-track::after { content: ''; position: absolute; top: 4px; left: 4px; width: 20px; height: 20px;
+    border-radius: 50%; background: #fff; box-shadow: 0 2px 4px #30241933; transition: transform .2s; }
+  .ads-switch input:checked + .ads-switch-track { background: var(--gold-dark); }
+  .ads-switch input:checked + .ads-switch-track::after { transform: translateX(20px); }
+  .ads-switch input:focus-visible + .ads-switch-track { outline: 3px solid rgba(185,138,82,.5); outline-offset: 3px; }
+
   .save {
     display: block; width: 100%; height: 56px; margin-top: 16px; border-radius: 18px; text-align: center;
     font: 400 18px var(--sans); letter-spacing: .01em; color: #fff;
@@ -208,6 +223,17 @@
         <button class="pen" type="button" data-for="f-password" aria-label="Изменить пароль"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
       </div>
       <p class="err" id="err-password" hidden></p>
+    </div>
+
+    <div class="ads-setting">
+      <div class="ads-setting-line">
+        <label class="ads-setting-title" for="f-ads-consent">Рекламная рассылка</label>
+        <label class="ads-switch" aria-label="Получать рекламную рассылку">
+          <input id="f-ads-consent" type="checkbox" aria-describedby="ads-consent-desc">
+          <span class="ads-switch-track" aria-hidden="true"></span>
+        </label>
+      </div>
+      <p class="ads-setting-desc" id="ads-consent-desc">Отключите, если не хотите получать рекламные сообщения от ПАРАКЛИ.</p>
     </div>
 
     <button class="save" id="save" type="button">Сохранить изменения</button>
@@ -335,6 +361,7 @@
     KEYS.forEach(function (k) {
       $('f-' + k).value = k === 'phone' ? fmtPhone(u[k]) : clean(u[k]);
     });
+    $('f-ads-consent').checked = u.ads_consent === true || u.ads_consent === 1;
   }
 
   function readForm() {
@@ -502,7 +529,8 @@
     }
     var payload = {
       first_name: v.first_name, last_name: v.last_name, phone: phoneDigits(v.phone),
-      email: v.email, city: v.city
+      email: v.email, city: v.city,
+      ads_consent: $('f-ads-consent').checked
     };
     if (pendingAvatar !== null) payload.avatar_id = pendingAvatar;
     var newPw = pwEditing ? $('f-password').value : '';
@@ -558,6 +586,7 @@
     });
   }
   $('save').addEventListener('click', save);
+  $('f-ads-consent').addEventListener('change', function () { touched = true; });
 
   /* ---------- Назад в профиль ---------- */
   function goBack() { location.href = PROFILE_PAGE + location.search; }
