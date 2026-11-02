@@ -290,6 +290,46 @@
   overlay.addEventListener('click', function (e) { if (e.target === overlay) closeDialog(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDialog(); });
 
+  /* ---------- Подтверждение телефона после входа ---------- */
+  (function () {
+    var accountKey = 'parakli_phone_prompt_' + (Parakli.cachedUser() || {}).telegram_id;
+    Parakli.getSession().then(function (r) {
+      if (!r.ok || !r.data.registered || !r.data.user || r.data.user.phone_verified) return;
+      accountKey = 'parakli_phone_prompt_' + r.data.user.telegram_id;
+      if (sessionStorage.getItem(accountKey) === '1') return;
+      sessionStorage.setItem(accountKey, '1');
+      var panel = document.createElement('div');
+      panel.id = 'phoneConfirmPanel';
+      panel.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#0008;display:flex;justify-content:center;align-items:center;padding:20px';
+      panel.innerHTML = '<div style="max-width:380px;width:100%;background:#f6ecdc;border-radius:20px;padding:24px;color:#302419;box-shadow:0 12px 36px #0003">' +
+        '<h2 style="font-size:22px;margin:0 0 12px">Подтвердите телефон</h2>' +
+        '<p style="line-height:1.5">Подтвердите номер, чтобы восстановить пароль при входе с другого устройства. Без подтверждения сброс пароля недоступен.</p>' +
+        '<div id="phoneConfirmCodeArea" style="display:none"><p>Поделитесь своим контактом в чате бота, затем введите присланный код.</p><input id="phoneConfirmCode" inputmode="numeric" maxlength="6" placeholder="6 цифр" style="width:100%;padding:12px;border:1px solid #bda98e;border-radius:10px;box-sizing:border-box"><button id="phoneConfirmCheck" style="margin-top:12px;padding:12px;width:100%">Проверить код</button></div>' +
+        '<p id="phoneConfirmMsg" style="font-size:13px"></p><button id="phoneConfirmStart" style="padding:12px;width:100%">Подтвердить номер</button><button id="phoneConfirmLater" style="padding:12px;width:100%;margin-top:8px">Позже</button></div>';
+      document.body.appendChild(panel);
+      panel.querySelector('#phoneConfirmLater').onclick = function () { panel.remove(); };
+      panel.querySelector('#phoneConfirmStart').onclick = function () {
+        var btn = this; btn.disabled = true;
+        Parakli.startPhoneVerification().then(function(res) {
+          if (res.ok) {
+            panel.querySelector('#phoneConfirmCodeArea').style.display = 'block';
+            panel.querySelector('#phoneConfirmMsg').textContent = 'Бот отправил запрос контакта в ваш чат. Вернитесь сюда с кодом.';
+            // Telegram покажет сообщение в уже существующем чате бота; пользователь открывает чат из списка.
+          } else panel.querySelector('#phoneConfirmMsg').textContent = 'Не удалось начать подтверждение. Проверьте чат с ботом и попробуйте позже.';
+        }).catch(function () { panel.querySelector('#phoneConfirmMsg').textContent = 'Нет соединения с сервером.'; }).finally(function(){ btn.disabled = false; });
+      };
+      panel.querySelector('#phoneConfirmCheck').onclick = function () {
+        var code = panel.querySelector('#phoneConfirmCode').value;
+        if (!/^\d{6}$/.test(code)) { panel.querySelector('#phoneConfirmMsg').textContent = 'Введите шестизначный код.'; return; }
+        var btn = this; btn.disabled = true;
+        Parakli.confirmPhone(code).then(function(res) {
+          if (res.ok) { panel.remove(); Parakli.getSession(); }
+          else panel.querySelector('#phoneConfirmMsg').textContent = 'Код неверный, не получен или истёк.';
+        }).catch(function() { panel.querySelector('#phoneConfirmMsg').textContent = 'Нет связи с сервером.'; }).finally(function(){ btn.disabled = false; });
+      };
+    }).catch(function () {});
+  })();
+
   /* ---------- Карточки и кнопки ---------- */
   ['card-relax', 'card-sleep', 'card-move'].forEach(function (id) {
     $(id).addEventListener('click', function () { openDialog('Извините, этот раздел пока в разработке'); });
@@ -370,9 +410,3 @@
 </body>
 </html>
 
-</body>
-</html>
-
-
-</body>
-</html>
