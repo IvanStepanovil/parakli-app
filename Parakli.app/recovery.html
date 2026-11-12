@@ -92,6 +92,9 @@
   .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 10px; }
   .tags span { padding: 3px 10px; border-radius: 10px; font-size: 12px; letter-spacing: .03em; color: var(--gold-dark); background: rgba(232,214,184,.8); }
   .ex p { margin: 0; font-size: 15px; line-height: 1.5; }
+  /* Предупреждение о безопасности (текст — поле notice в exercises.json) */
+  .notice { margin: 0 0 14px; padding: 12px 14px; border-radius: 16px; font-size: 13px; line-height: 1.45; color: #6b5a47; }
+  #setupNotice { margin: 16px 0 0; }
   .empty { padding: 26px 18px; border-radius: 20px; text-align: center; font-size: 15px; color: var(--muted); }
 
   /* ---------- Настройка тренировки ---------- */
@@ -137,6 +140,8 @@
   .wtitle { margin: 2px 0 12px; text-align: center; font-size: clamp(30px, 9vw, 40px); }
 
   .wphoto { position: relative; height: clamp(320px, 56vh, 520px); border-radius: 22px; overflow: hidden; box-shadow: 0 8px 20px rgba(120,88,40,.15); }
+  /* Видео упражнения: лежит под таймером и кнопками, пока не загрузилось — видно фото (poster / фон блока) */
+  .wphoto video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: transparent; pointer-events: none; }
   .timer { position: absolute; left: 50%; bottom: 88px; width: 150px; height: 150px; transform: translateX(-50%); border-radius: 50%; background: rgba(28,21,16,.22); }
   .timer svg { width: 100%; height: 100%; transform: rotate(-90deg); }
   .timer circle { fill: none; stroke-width: 5; }
@@ -222,6 +227,7 @@
   <button class="back" id="encBack" type="button" aria-label="Назад к выбору зоны"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
   <h1 id="encTitle"></h1>
   <p class="sub" id="encSub"></p>
+  <p class="notice glass" id="encNotice" hidden></p>
   <div class="exlist" id="exlist"></div>
 </main>
 
@@ -239,6 +245,8 @@
   <h2>Режим нагрузки</h2>
   <div class="levels" id="levels"></div>
 
+  <p class="notice glass" id="setupNotice" hidden></p>
+
   <div class="start-wrap">
     <button class="main-btn" id="startBtn" type="button">Начать тренировку <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
   </div>
@@ -254,6 +262,7 @@
   <h1 class="wtitle" id="wtitle"></h1>
 
   <div class="wphoto ph" id="wphoto">
+    <video id="wvideo" muted loop playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true" hidden></video>
     <div class="timer">
       <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/><circle class="arc" id="arc" cx="50" cy="50" r="45"/></svg>
       <div class="time" id="wtime">00:50</div>
@@ -332,7 +341,9 @@
     { id: 'calves', name: 'Икры' },      { id: 'thighs', name: 'Бёдра' },
     { id: 'feet', name: 'Стопы' }
   ];
-  var DURATIONS = [5, 10];   // программа «5 минут» = первые 5 упражнений, «10 минут» = все 10
+  // Короткая тренировка (5) = первые 5 упражнений; длинная (10) = все упражнения программы, но не больше 10.
+  // Если в программе меньше 10 упражнений (у арахиса 9), на кнопке и в профиле будет фактическое число минут
+  var DURATIONS = [5, 10];
   var LEVELS = [
     { id: 'light',   name: 'Лёгкий',      hint: 'Мягкое расслабление' },
     { id: 'intense', name: 'Интенсивный', hint: 'Глубокая проработка' }
@@ -341,9 +352,10 @@
     { id: 'ball4', name: 'Мяч 4 см' }, { id: 'ball6', name: 'Мяч 6 см' }, { id: 'peanut', name: 'Арахис' }
   ];
   // Какие режимы уже доступны для массажёра. Чего нет в списке — «в разработке»
-  var AVAILABLE = { ball4: ['light', 'intense'], ball6: ['light'], peanut: [] };
+  var AVAILABLE = { ball4: ['light', 'intense'], ball6: ['light', 'intense'], peanut: ['light', 'intense'] };
   var LOCKED_TEXT = {
     'ball6-intense': 'Извините, интенсивный режим для мяча 6 см пока в разработке.',
+    'peanut-intense': 'Извините, интенсивный режим для массажёра «Арахис» пока в разработке.',
     peanut: 'Извините, тренировки с массажёром «Арахис» пока в разработке.'
   };
   /* ============================================== */
@@ -378,6 +390,7 @@
   var SCREENS = ['scrMenu', 'scrZone', 'scrEnc', 'scrSetup', 'scrWork', 'scrDone'];
   function show(id) {
     SCREENS.forEach(function (s) { $(s).hidden = s !== id; });
+    if (id !== 'scrWork') { var v = $('wvideo'); if (v) v.pause(); }   // ушли с тренировки — видео не играет в фоне
     window.scrollTo(0, 0);
     try { if (tg) { if (id === 'scrWork') tg.enableClosingConfirmation(); else tg.disableClosingConfirmation(); } } catch (e) {}
   }
@@ -390,22 +403,32 @@
       .then(function (d) { library = d; return d; });
   }
   function getLibrary() { return library ? Promise.resolve(library) : loadLibrary(); }
-  getLibrary().catch(function (e) { console.warn('Упражнения не загружены:', e); });
+  getLibrary().then(function () {
+    var n = (library && library.notice) || '';
+    ['setupNotice', 'encNotice'].forEach(function (id) { $(id).textContent = n; $(id).hidden = !n; });
+    if (typeof renderSetup === 'function') renderSetup();
+  })
+    .catch(function (e) { console.warn('Упражнения не загружены:', e); });
 
   function exById(id) {
     var all = (library && library.exercises) || [];
     for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
     return null;
   }
-  // Программа тренировки: первые count упражнений по порядку из базы. Не хватает — null
-  function buildProgram(tool, level, count) {
-    var ids = (library && library.programs && library.programs[tool + '-' + level]) || [];
-    if (ids.length < count) return null;
+  function programIds(tool, level) { return (library && library.programs && library.programs[tool + '-' + level]) || []; }
+  // Сколько упражнений будет в тренировке: короткая — 5, длинная — вся программа (до 10)
+  function programCount(tool, level, duration) {
+    return duration === 5 ? 5 : Math.min(10, programIds(tool, level).length);
+  }
+  // Программа тренировки: упражнения по порядку из базы. Не хватает — null
+  function buildProgram(tool, level, duration) {
+    var ids = programIds(tool, level), count = programCount(tool, level, duration);
+    if (count < 5 || ids.length < count) return null;
     var out = [];
     for (var i = 0; i < count; i++) {
       var e = exById(ids[i]);
       if (!e) return null;
-      out.push({ id: e.id, name: e.name, text: e.text || '', image: e.image || '' });
+      out.push({ id: e.id, name: e.name, text: e.text || '', image: e.image || '', video: e.video || '' });
     }
     return out;
   }
@@ -519,6 +542,13 @@
         b.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
     });
+    // На кнопке длинной тренировки — фактическая длина выбранной программы (например 9 у арахиса)
+    var longMin = 10;
+    if (setup.tool && setup.level && isAvailable(setup.tool, setup.level)) {
+      var n = programCount(setup.tool, setup.level, 10);
+      if (n >= 5) longMin = n;
+    }
+    $('durs').querySelector('[data-v="10"] b').textContent = longMin;
     Array.prototype.forEach.call($('levels').children, function (b) {
       var locked = !!setup.tool && !isAvailable(setup.tool, b.dataset.v);
       b.classList.toggle('locked', locked);
@@ -562,7 +592,7 @@
 
   function startSession(list) {
     S = {
-      id: newId(), duration: setup.duration, level: setup.level, tool: setup.tool,
+      id: newId(), duration: list.length, level: setup.level, tool: setup.tool,   // фактические минуты: 5, 9 или 10
       list: list, planned: list.length, idx: 0, phase: 'exercise', paused: false,
       left: EXERCISE_SEC * 1000, len: EXERCISE_SEC * 1000,
       exSec: list.map(function () { return 0; }), doneEx: list.map(function () { return false; }),
@@ -582,7 +612,7 @@
     S.idx = i; S.phase = 'exercise'; S.paused = false;
     S.reached = Math.max(S.reached || 0, i);   // дальнее упражнение, до которого дошли
     S.left = S.len = EXERCISE_SEC * 1000;
-    renderStage(); persist();
+    renderStage(); restartVideo(); persist();
   }
   function goRest() {
     S.phase = 'rest'; S.paused = false;
@@ -626,7 +656,38 @@
   }
   $('pauseBtn').addEventListener('click', function () { setPaused(!S.paused); });
 
+  /* ---------- Видео упражнения ----------
+     Один <video> на экран тренировки. Видео идёт по кругу, без звука (иначе Telegram/iOS не даст запустить его сам)
+     и ставится на паузу вместе с таймером. Нет видео или файл не загрузился — остаётся фото упражнения. */
+  var vid = $('wvideo');
+  vid.muted = true;   // iOS проверяет именно свойство, атрибута мало
+  vid.addEventListener('error', function () { vid.hidden = true; vid.dataset.failed = vid.dataset.src || ''; });
+
+  // src — путь к видео, poster — фото, visible — показывать сейчас или только подгрузить заранее
+  function setVideo(src, poster, visible) {
+    if (!src) {
+      vid.hidden = true; vid.pause();
+      if (vid.dataset.src) { vid.dataset.src = ''; vid.removeAttribute('src'); vid.load(); }
+      return;
+    }
+    if (vid.dataset.src !== src) {
+      vid.dataset.src = src; vid.dataset.failed = '';
+      if (poster) vid.poster = encodeURI(poster); else vid.removeAttribute('poster');
+      vid.src = encodeURI(src);
+    }
+    vid.hidden = !visible || vid.dataset.failed === src;
+    syncVideo();
+  }
+  function restartVideo() { try { vid.currentTime = 0; } catch (e) {} }
+  function syncVideo() {
+    var play = S && S.phase === 'exercise' && !S.paused && !vid.hidden && !$('scrWork').hidden;
+    if (!play) { vid.pause(); return; }
+    var p = vid.play();
+    if (p && p.catch) p.catch(function () {});   // автозапуск запрещён — останется первый кадр/фото
+  }
+
   function renderPause() {
+    syncVideo();
     $('pauseIcon').innerHTML = S.paused ? '<path d="M8 5.5v13l11-6.5z"/>' : '<rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/>';
     $('pauseBtn').setAttribute('aria-label', S.paused ? 'Продолжить' : 'Пауза');
   }
@@ -640,12 +701,17 @@
       $('wtext').textContent = ex.text;
       $('wnext').textContent = last ? 'Далее: завершение тренировки' : 'Далее: отдых ' + REST_SEC + ' секунд';
       setImg(photo, ex.image);
+      setVideo(ex.video, ex.image, true);
     } else {
       $('wcount').textContent = 'Перед упражнением ' + (S.idx + 2) + ' из ' + S.planned;
       $('wtitle').textContent = 'Отдых';
       $('wtext').textContent = 'Расслабьтесь и спокойно подышите.';
       $('wnext').textContent = 'Далее: ' + S.list[S.idx + 1].name;
       setImg(photo, REST_IMAGE);
+      // Пока отдыхаем, тихо подгружаем видео следующего упражнения, чтобы оно стартовало без задержки
+      var nx = S.list[S.idx + 1];
+      setVideo(nx.video, nx.image, false);
+      restartVideo();
     }
     $('prevBtn').disabled = S.phase === 'exercise' && S.idx === 0;
     renderPause();
