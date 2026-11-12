@@ -143,6 +143,13 @@
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
   .toast.bad { box-shadow: 0 10px 28px rgba(90,60,20,.25), inset 0 0 0 1px rgba(168,69,44,.5); color: var(--danger); }
+  /* Статус почты и Telegram ID для входа */
+  .email-status { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 7px 2px 0; font-size: 12.5px; line-height: 1.3; color: var(--muted); }
+  .email-status.ok { color: #5f7a4a; }
+  .email-status button { border: 0; background: none; padding: 0; font: inherit; font-weight: 500; color: #8a5f2e; text-decoration: underline; cursor: pointer; }
+  .idrow .box input { color: var(--muted); }
+  .idrow .copy { flex: none; border: 0; background: none; padding: 4px 2px; font: 500 13px inherit; color: #8a5f2e; cursor: pointer; }
+  .idnote { margin: 6px 2px 0; font-size: 12px; line-height: 1.35; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -203,6 +210,7 @@
         <button class="pen" type="button" data-for="f-email" aria-label="Изменить: E-mail"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
       </div>
       <p class="err" id="err-email" hidden></p>
+      <p class="email-status" id="emailStatus" hidden></p>
     </div>
 
     <div class="field" id="w-city">
@@ -213,6 +221,16 @@
         <button class="pen" type="button" data-for="f-city" aria-label="Изменить: Город"><svg viewBox="0 0 24 24"><path d="M4 20l1-4L16 5l3 3L8 19l-4 1z"/><path d="M14 7l3 3"/></svg></button>
       </div>
       <p class="err" id="err-city" hidden></p>
+    </div>
+
+    <div class="field idrow" id="w-tgid">
+      <label for="f-tgid">Telegram ID для входа</label>
+      <div class="box">
+        <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14.5 10h3.5M14.5 13.5h3.5"/></svg>
+        <input id="f-tgid" type="text" readonly tabindex="-1" aria-describedby="tgidNote">
+        <button class="copy" type="button" id="copyTgid">Копировать</button>
+      </div>
+      <p class="idnote" id="tgidNote">С этим ID и паролем можно войти в аккаунт с другого Telegram. Сохраните его.</p>
     </div>
 
     <div class="field" id="w-password">
@@ -349,7 +367,38 @@
   $('f-password').addEventListener('click', startPasswordEdit);
   $('f-password').addEventListener('input', function () { touched = true; clearError('password'); });
 
+  // Telegram ID аккаунта и статус подтверждения почты
+  function renderAccountInfo(u) {
+    if (!u) return;
+    $('f-tgid').value = u.telegram_id || '';
+    var st = $('emailStatus');
+    st.hidden = !u.email;
+    st.className = 'email-status' + (u.email_verified ? ' ok' : '');
+    st.innerHTML = '';
+    if (u.email_verified) { st.textContent = '✓ Почта подтверждена'; return; }
+    st.appendChild(document.createTextNode('Почта не подтверждена — без этого нельзя восстановить пароль.'));
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = 'Подтвердить';
+    b.onclick = function () {
+      // Плашка подтверждения живёт на главном экране: сбрасываем «Позже» и переходим туда
+      try { sessionStorage.removeItem('parakli_email_prompt_' + u.telegram_id); } catch (e) {}
+      location.href = 'main.html' + location.search;
+    };
+    st.appendChild(b);
+  }
+  $('copyTgid').addEventListener('click', function () {
+    var v = $('f-tgid').value;
+    if (!v) return;
+    var done = function () { toast('ID скопирован.'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(v).then(done, function () { fallbackCopy(v); done(); });
+    else { fallbackCopy(v); done(); }
+  });
+  function fallbackCopy(v) {
+    var i = $('f-tgid'); i.removeAttribute('readonly'); i.select(); try { document.execCommand('copy'); } catch (e) {} i.setAttribute('readonly', ''); i.blur();
+  }
+
   function showSaved(u) {
+    renderAccountInfo(u);
     $('fullName').textContent = fullName(u);
     if (!pwEditing) showPasswordMask(u);
     if (pendingAvatar !== null || pendingPhoto) return;   // на экране предпросмотр выбранного, не затираем
@@ -551,7 +600,7 @@
         fillForm(saved);
         if (!pendingPhoto) {
           showSaved(saved);
-          toast('Изменения успешно сохранены.');                // только после подтверждения сервера
+          toast(saved.email_verified ? 'Изменения успешно сохранены.' : 'Сохранено. Подтвердите почту — код придёт письмом.');   // только после подтверждения сервера
           return;
         }
         // Данные сохранены, теперь отправляем выбранное фото
