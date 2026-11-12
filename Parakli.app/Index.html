@@ -236,14 +236,10 @@
 <section id="scrLogin" hidden>
   <button type="button" class="back" data-go="scrWelcome" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
   <h1>Вход в аккаунт</h1>
-  <p class="sub">Введите имя, фамилию и пароль, которые указывали при регистрации</p>
-  <div class="field" data-for="l_first_name">
-    <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
-    <input id="l_first_name" type="text" placeholder="Имя" autocomplete="off" maxlength="40">
-  </div>
-  <div class="field" data-for="l_last_name">
-    <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
-    <input id="l_last_name" type="text" placeholder="Фамилия" autocomplete="off" maxlength="40">
+  <p class="sub">Введите Telegram ID, на который регистрировали аккаунт, и пароль. ID указан в приложении: Профиль → Мои данные. Если старый Telegram под рукой — отправьте нашему боту команду /id.</p>
+  <div class="field" data-for="l_account_id">
+    <svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14.5 10h3.5M14.5 13.5h3.5"/></svg>
+    <input id="l_account_id" type="text" inputmode="numeric" placeholder="Telegram ID" autocomplete="off" maxlength="15">
   </div>
   <div class="field" data-for="l_password">
     <svg class="ic" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg>
@@ -259,14 +255,12 @@
 <section id="scrReset" hidden>
   <button type="button" class="back" data-go="scrLogin" aria-label="Назад">←</button>
   <h1>Восстановление пароля</h1>
-  <p class="sub">Укажите данные аккаунта. Код придёт владельцу на подтверждённый Telegram.</p>
-  <div class="field"><input id="resetFirst" placeholder="Имя" maxlength="40"></div>
-  <div class="field"><input id="resetLast" placeholder="Фамилия" maxlength="40"></div>
-  <div class="field"><input id="resetPhone" type="tel" placeholder="Телефон +7..." maxlength="20"></div>
+  <p class="sub">Укажите почту аккаунта. Код придёт на неё, если почта была подтверждена в приложении.</p>
+  <div class="field"><input id="resetEmail" type="email" inputmode="email" placeholder="E-mail" autocomplete="off" maxlength="80"></div>
   <button class="btn" id="resetSend" type="button">Отправить код</button>
   <div id="resetSecond" hidden>
-    <p class="sub">Если номер подтверждён, код отправлен в Telegram владельца. Он действует 5 минут.</p>
-    <div class="field"><input id="resetCode" inputmode="numeric" maxlength="6" placeholder="Код из Telegram"></div>
+    <p class="sub">Если почта подтверждена, мы отправили на неё код. Он действует 10 минут. Не пришло — проверьте папку «Спам».</p>
+    <div class="field"><input id="resetCode" inputmode="numeric" maxlength="6" placeholder="Код из письма" autocomplete="one-time-code"></div>
     <div class="field"><input id="resetPassword" type="password" maxlength="64" placeholder="Новый пароль (от 6 символов)"></div>
     <button class="btn" id="resetFinish" type="button">Сохранить новый пароль</button>
   </div>
@@ -430,31 +424,44 @@
 
   /* ---------- Восстановление пароля ---------- */
   $('forgotPassword').addEventListener('click', function () {
-    $('resetFirst').value = $('l_first_name').value;
-    $('resetLast').value = $('l_last_name').value;
     $('resetMsg').textContent = '';
     $('resetSecond').hidden = true;
     go('scrReset');
   });
-  var resetBusy = false;
+  var resetBusy = false, resetTimer = null;
+  // Кнопка «Отправить код» снова доступна через минуту (раньше сервер всё равно не пришлёт новый код)
+  function resetCooldown(sec) {
+    clearInterval(resetTimer);
+    var b = $('resetSend'), left = sec;
+    b.disabled = true;
+    (function tick() {
+      if (left <= 0) { clearInterval(resetTimer); b.disabled = false; b.textContent = 'Отправить код ещё раз'; return; }
+      b.textContent = 'Ещё раз через ' + left + ' с'; left--;
+    })();
+    resetTimer = setInterval(function () {
+      if (left <= 0) { clearInterval(resetTimer); b.disabled = false; b.textContent = 'Отправить код ещё раз'; return; }
+      b.textContent = 'Ещё раз через ' + left + ' с'; left--;
+    }, 1000);
+  }
   $('resetSend').addEventListener('click', function () {
     if (resetBusy) return;
-    var data = { first_name: $('resetFirst').value.trim(), last_name: $('resetLast').value.trim(), phone: $('resetPhone').value.trim() };
-    if (!data.first_name || !data.last_name || !/^\+\d[\d\s()-]{6,19}$/.test(data.phone)) { $('resetMsg').textContent = 'Заполните имя, фамилию и телефон.'; return; }
+    var data = { email: $('resetEmail').value.trim() };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email)) { $('resetMsg').textContent = 'Введите почту аккаунта.'; return; }
     resetBusy = true; $('resetSend').disabled = true;
     Parakli.startPasswordReset(data).then(function(r) {
-      $('resetMsg').textContent = r.ok ? '' : 'Не удалось отправить запрос. Попробуйте позднее.';
-      if (r.ok) $('resetSecond').hidden = false;
-    }).catch(function(){ $('resetMsg').textContent = 'Нет связи с сервером.'; }).finally(function(){ resetBusy = false; $('resetSend').disabled = false; });
+      if (r.ok) { $('resetMsg').textContent = ''; $('resetSecond').hidden = false; resetCooldown((r.data && r.data.resend_after) || 60); return; }
+      $('resetSend').disabled = false;
+      $('resetMsg').textContent = r.status === 429 ? 'Слишком много запросов. Попробуйте позже.' : 'Не удалось отправить запрос. Попробуйте позднее.';
+    }).catch(function(){ $('resetSend').disabled = false; $('resetMsg').textContent = 'Нет связи с сервером.'; }).finally(function(){ resetBusy = false; });
   });
   $('resetFinish').addEventListener('click', function () {
     if (resetBusy) return;
-    var data = { first_name: $('resetFirst').value.trim(), last_name: $('resetLast').value.trim(), phone: $('resetPhone').value.trim(), code: $('resetCode').value.trim(), password: $('resetPassword').value };
+    var data = { email: $('resetEmail').value.trim(), code: $('resetCode').value.trim(), password: $('resetPassword').value };
     if (!/^\d{6}$/.test(data.code) || data.password.length < 6) { $('resetMsg').textContent = 'Введите 6 цифр кода и новый пароль от 6 символов.'; return; }
     resetBusy = true; $('resetFinish').disabled = true;
     Parakli.finishPasswordReset(data).then(function(r) {
       if (r.ok) { $('resetMsg').textContent = ''; $('l_password').value = ''; go('scrLogin'); $('loginMsg').textContent = 'Пароль изменён. Войдите с новым паролем.'; }
-      else $('resetMsg').textContent = 'Неверный или просроченный код. Проверьте данные.';
+      else $('resetMsg').textContent = r.status === 429 ? 'Слишком много попыток. Попробуйте позже.' : 'Неверный или просроченный код. Проверьте почту и код.';
     }).catch(function(){ $('resetMsg').textContent = 'Нет связи с сервером.'; }).finally(function(){ resetBusy = false; $('resetFinish').disabled = false; });
   });
 
@@ -470,9 +477,10 @@
   function goodPassword(v) { return v.length >= 6 && v.length <= 64 && v.trim() === v; }
 
   /* ---------- Вход ---------- */
-  var loginFields = ['l_first_name', 'l_last_name', 'l_password'], logging = false;
+  var loginFields = ['l_account_id', 'l_password'], logging = false;
+  function loginId() { return $('l_account_id').value.replace(/\D/g, ''); }
   function loginReady() {
-    return $('l_first_name').value.trim().length >= 2 && $('l_last_name').value.trim().length >= 2 && $('l_password').value.length >= 1;
+    return loginId().length >= 3 && $('l_password').value.length >= 1;
   }
   loginFields.forEach(function (id) {
     $(id).addEventListener('input', function () {
@@ -486,14 +494,13 @@
     if (logging || !loginReady()) return;
     logging = true; $('loginBtn').disabled = true; $('loginBtn').textContent = 'Входим…'; $('loginMsg').textContent = '';
     Parakli.login({
-      first_name: $('l_first_name').value.trim(),
-      last_name: $('l_last_name').value.trim(),
+      account_id: loginId(),
       password: $('l_password').value
     }).then(function (r) {
       if (r.ok) { Parakli.markVerified(); goMain(); return; }
       var m = $('loginMsg');
       if (r.status === 401 && r.data && r.data.error === 'wrong_credentials') {
-        m.textContent = 'Неверные имя, фамилия или пароль.';
+        m.textContent = 'Неверный Telegram ID или пароль.';
         loginFields.forEach(function (id) { document.querySelector('.field[data-for="' + id + '"]').classList.add('invalid'); });
       } else if (r.status === 401) m.textContent = 'Откройте приложение из Telegram: отправьте боту команду /start.';
       else if (r.status === 429) m.textContent = 'Слишком много попыток. Попробуйте через несколько минут.';
