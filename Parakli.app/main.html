@@ -177,17 +177,17 @@
 
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
-  /* Подтверждение номера — те же цвета, типографика и скругления, что у ПАРАКЛИ */
-  .phone-confirm-backdrop { position:fixed; inset:0; z-index:9999; padding:20px; display:flex; align-items:center; justify-content:center; background:rgba(28,21,16,.52); backdrop-filter:blur(3px); }
-  .phone-confirm-card { width:100%; max-width:380px; padding:25px 22px 22px; border-radius:24px; color:var(--ink); background:#f6ecdc; box-shadow:0 18px 48px rgba(56,38,22,.24), inset 0 0 0 1px rgba(255,255,255,.7); }
-  .phone-confirm-card h2 { margin:0 0 11px; font:600 30px/1.05 var(--serif); text-align:center; }
-  .phone-confirm-card p { margin:0 0 17px; font:400 14px/1.5 var(--sans); color:var(--muted); text-align:center; }
-  .phone-confirm-card .phone-confirm-symbol { margin:0 auto 14px; display:grid;place-items:center; width:48px;height:48px; border:1px solid #d2b890; border-radius:50%; color:var(--gold-dark); font-size:24px; }
-  .phone-confirm-card input { display:block; width:100%; padding:13px; background:#fffaf1; border:1px solid #c8ad87; border-radius:13px; color:var(--ink); font:500 17px var(--sans); text-align:center; letter-spacing:.1em; outline-color:var(--gold); }
-  .phone-confirm-card .phone-confirm-action { display:block; width:100%; margin-top:10px; padding:13px 14px; text-align:center; border-radius:14px; background:linear-gradient(140deg,#c39a62,#9a6c34);color:#fff; font:500 15px var(--sans); }
-  .phone-confirm-card .phone-confirm-action:disabled { opacity:.6; }
-  .phone-confirm-card .phone-confirm-later { display:block;width:100%;padding:12px 14px;text-align:center;color:var(--gold-dark);font:500 14px var(--sans); }
-  .phone-confirm-card .phone-confirm-message { min-height:1em; color:var(--gold-dark);font-size:13px; }
+  /* Подтверждение почты — те же цвета, типографика и скругления, что у ПАРАКЛИ */
+  .email-confirm-backdrop { position:fixed; inset:0; z-index:9999; padding:20px; display:flex; align-items:center; justify-content:center; background:rgba(28,21,16,.52); backdrop-filter:blur(3px); }
+  .email-confirm-card { width:100%; max-width:380px; padding:25px 22px 22px; border-radius:24px; color:var(--ink); background:#f6ecdc; box-shadow:0 18px 48px rgba(56,38,22,.24), inset 0 0 0 1px rgba(255,255,255,.7); }
+  .email-confirm-card h2 { margin:0 0 11px; font:600 30px/1.05 var(--serif); text-align:center; }
+  .email-confirm-card p { margin:0 0 17px; font:400 14px/1.5 var(--sans); color:var(--muted); text-align:center; }
+  .email-confirm-card .email-confirm-symbol { margin:0 auto 14px; display:grid;place-items:center; width:48px;height:48px; border:1px solid #d2b890; border-radius:50%; color:var(--gold-dark); font-size:24px; }
+  .email-confirm-card input { display:block; width:100%; padding:13px; background:#fffaf1; border:1px solid #c8ad87; border-radius:13px; color:var(--ink); font:500 17px var(--sans); text-align:center; letter-spacing:.1em; outline-color:var(--gold); }
+  .email-confirm-card .email-confirm-action { display:block; width:100%; margin-top:10px; padding:13px 14px; text-align:center; border-radius:14px; background:linear-gradient(140deg,#c39a62,#9a6c34);color:#fff; font:500 15px var(--sans); }
+  .email-confirm-card .email-confirm-action:disabled { opacity:.6; }
+  .email-confirm-card .email-confirm-later { display:block;width:100%;padding:12px 14px;text-align:center;color:var(--gold-dark);font:500 14px var(--sans); }
+  .email-confirm-card .email-confirm-message { min-height:1em; color:var(--gold-dark);font-size:13px; }
 </style>
 </head>
 <body>
@@ -302,43 +302,79 @@
   overlay.addEventListener('click', function (e) { if (e.target === overlay) closeDialog(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDialog(); });
 
-  /* ---------- Подтверждение телефона после входа ---------- */
+  /* ---------- Подтверждение почты после входа ----------
+     Плашка показывается при каждом открытии приложения, пока почта не подтверждена («Позже» — скрыть до следующего входа).
+     Код приходит письмом на почту из профиля; подтверждённая почта нужна для восстановления пароля. */
   (function () {
-    var accountKey = 'parakli_phone_prompt_' + (Parakli.cachedUser() || {}).telegram_id;
     Parakli.getSession().then(function (r) {
-      if (!r.ok || !r.data.registered || !r.data.user || r.data.user.phone_verified) return;
-      accountKey = 'parakli_phone_prompt_' + r.data.user.telegram_id;
-      if (sessionStorage.getItem(accountKey) === '1') return;
-      sessionStorage.setItem(accountKey, '1');
+      if (!r.ok || !r.data.registered || !r.data.user || r.data.user.email_verified) return;
+      var u = r.data.user, accountKey = 'parakli_email_prompt_' + u.telegram_id;
+      try { if (sessionStorage.getItem(accountKey) === '1') return; sessionStorage.setItem(accountKey, '1'); } catch (e) {}
+      var esc = function (t) { return String(t || '').replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
       var panel = document.createElement('div');
-      panel.id = 'phoneConfirmPanel';
-      panel.className = 'phone-confirm-backdrop';
-      panel.innerHTML = '<div class="phone-confirm-card" role="dialog" aria-modal="true" aria-labelledby="phoneConfirmTitle">' +
-        '<div class="phone-confirm-symbol" aria-hidden="true">✓</div>' +
-        '<h2 id="phoneConfirmTitle">Подтвердите телефон</h2>' +
-        '<p>Подтвердите номер, чтобы восстановить пароль при входе с другого устройства. Без подтверждения сброс пароля недоступен.</p>' +
-        '<div id="phoneConfirmCodeArea" style="display:none"><p>Поделитесь своим контактом в чате бота, затем введите присланный код.</p><input id="phoneConfirmCode" inputmode="numeric" maxlength="6" placeholder="6 цифр" aria-label="Код подтверждения"><button class="phone-confirm-action" id="phoneConfirmCheck" type="button">Проверить код</button></div>' +
-        '<p class="phone-confirm-message" id="phoneConfirmMsg" role="status"></p><button class="phone-confirm-action" id="phoneConfirmStart" type="button">Подтвердить номер</button><button class="phone-confirm-later" id="phoneConfirmLater" type="button">Позже</button></div>';
+      panel.id = 'emailConfirmPanel';
+      panel.className = 'email-confirm-backdrop';
+      panel.innerHTML = '<div class="email-confirm-card" role="dialog" aria-modal="true" aria-labelledby="emailConfirmTitle">' +
+        '<div class="email-confirm-symbol" aria-hidden="true">✉</div>' +
+        '<h2 id="emailConfirmTitle">Подтвердите почту</h2>' +
+        '<p>Мы отправим код на <b style="color:var(--ink);word-break:break-all">' + esc(u.email) + '</b>. Подтверждённая почта нужна, чтобы восстановить пароль, если вы его забудете.</p>' +
+        '<div id="emailConfirmCodeArea" style="display:none"><p>Введите 6 цифр из письма. Не пришло — проверьте папку «Спам».</p>' +
+        '<input id="emailConfirmCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 цифр" aria-label="Код из письма">' +
+        '<button class="email-confirm-action" id="emailConfirmCheck" type="button">Подтвердить</button></div>' +
+        '<p class="email-confirm-message" id="emailConfirmMsg" role="status"></p>' +
+        '<button class="email-confirm-action" id="emailConfirmStart" type="button">Отправить код</button>' +
+        '<a class="email-confirm-later" href="mydata.html" id="emailConfirmEdit">Указать другую почту</a>' +
+        '<button class="email-confirm-later" id="emailConfirmLater" type="button">Позже</button></div>';
       document.body.appendChild(panel);
-      panel.querySelector('#phoneConfirmLater').onclick = function () { panel.remove(); };
-      panel.querySelector('#phoneConfirmStart').onclick = function () {
-        var btn = this; btn.disabled = true;
-        Parakli.startPhoneVerification().then(function(res) {
+      var q = function (id) { return panel.querySelector('#' + id); };
+      q('emailConfirmEdit').href = 'mydata.html' + location.search;   // параметры Telegram передаём дальше, как и в других переходах
+      var say = function (t) { q('emailConfirmMsg').textContent = t; };
+      var timer = null, startBtn = q('emailConfirmStart');
+      function cooldown(sec) {
+        clearInterval(timer);
+        var left = sec;
+        function tick() {
+          if (left <= 0) { clearInterval(timer); startBtn.disabled = false; startBtn.textContent = 'Отправить код ещё раз'; return; }
+          startBtn.disabled = true; startBtn.textContent = 'Отправить ещё раз через ' + left + ' с'; left--;
+        }
+        tick(); timer = setInterval(tick, 1000);
+      }
+      function close() { clearInterval(timer); panel.remove(); }
+      q('emailConfirmLater').onclick = close;
+      startBtn.onclick = function () {
+        startBtn.disabled = true; say('');
+        Parakli.startEmailVerification().then(function (res) {
+          var d = res.data || {};
+          if (res.ok && d.verified) { say('Почта уже подтверждена.'); setTimeout(close, 1200); return; }
           if (res.ok) {
-            panel.querySelector('#phoneConfirmCodeArea').style.display = 'block';
-            panel.querySelector('#phoneConfirmMsg').textContent = 'Бот отправил запрос контакта в ваш чат. Вернитесь сюда с кодом.';
-            // Telegram покажет сообщение в уже существующем чате бота; пользователь открывает чат из списка.
-          } else panel.querySelector('#phoneConfirmMsg').textContent = 'Не удалось начать подтверждение. Проверьте чат с ботом и попробуйте позже.';
-        }).catch(function () { panel.querySelector('#phoneConfirmMsg').textContent = 'Нет соединения с сервером.'; }).finally(function(){ btn.disabled = false; });
+            q('emailConfirmCodeArea').style.display = 'block';
+            say('Код отправлен. Он действует 10 минут.');
+            cooldown(d.resend_after || 60);
+            setTimeout(function () { q('emailConfirmCode').focus(); }, 50);
+            return;
+          }
+          startBtn.disabled = false;
+          if (d.error === 'cooldown') { q('emailConfirmCodeArea').style.display = 'block'; say('Код уже отправлен, проверьте почту.'); cooldown(d.resend_after || 60); }
+          else if (d.error === 'taken') say('Эта почта уже подтверждена в другом аккаунте. Укажите другую почту.');
+          else if (d.error === 'mail_failed') say('Не удалось отправить письмо. Попробуйте чуть позже.');
+          else if (res.status === 429) say('Слишком много запросов. Попробуйте позже.');
+          else say('Не удалось отправить код. Попробуйте позже.');
+        }).catch(function () { startBtn.disabled = false; say('Нет соединения с сервером.'); });
       };
-      panel.querySelector('#phoneConfirmCheck').onclick = function () {
-        var code = panel.querySelector('#phoneConfirmCode').value;
-        if (!/^\d{6}$/.test(code)) { panel.querySelector('#phoneConfirmMsg').textContent = 'Введите шестизначный код.'; return; }
+      q('emailConfirmCode').addEventListener('keydown', function (e) { if (e.key === 'Enter') q('emailConfirmCheck').click(); });
+      q('emailConfirmCheck').onclick = function () {
+        var code = q('emailConfirmCode').value.replace(/\D/g, '');
+        if (!/^\d{6}$/.test(code)) { say('Введите шестизначный код из письма.'); return; }
         var btn = this; btn.disabled = true;
-        Parakli.confirmPhone(code).then(function(res) {
-          if (res.ok) { panel.remove(); Parakli.getSession(); }
-          else panel.querySelector('#phoneConfirmMsg').textContent = 'Код неверный, не получен или истёк.';
-        }).catch(function() { panel.querySelector('#phoneConfirmMsg').textContent = 'Нет связи с сервером.'; }).finally(function(){ btn.disabled = false; });
+        Parakli.confirmEmail(code).then(function (res) {
+          if (res.ok) {
+            q('emailConfirmCodeArea').style.display = 'none'; startBtn.style.display = 'none'; q('emailConfirmEdit').style.display = 'none';
+            q('emailConfirmLater').textContent = 'Готово'; clearInterval(timer);
+            say('Почта подтверждена ✓'); setTimeout(close, 1500);
+          } else if (res.data && res.data.error === 'taken') say('Эта почта уже подтверждена в другом аккаунте.');
+          else if (res.status === 429) say('Слишком много попыток. Попробуйте позже.');
+          else say('Код неверный или истёк. Отправьте новый.');
+        }).catch(function () { say('Нет связи с сервером.'); }).finally(function () { btn.disabled = false; });
       };
     }).catch(function () {});
   })();
