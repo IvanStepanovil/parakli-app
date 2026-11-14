@@ -117,6 +117,23 @@
   .level.locked .dot { box-shadow: inset 0 0 0 1.5px var(--muted); }
   .level.locked .lock { display: block; }
 
+  /* Музыка: «Без музыки» и треки из exercises.json → music. Кнопка ▶ — прослушать перед тренировкой */
+  .tracks { display: flex; flex-direction: column; gap: 8px; }
+  .track { display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 8px 10px 8px 16px; border-radius: 16px; width: 100%; text-align: left; }
+  .track .dot { flex: none; width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--gold-dark); display: grid; place-items: center; }
+  .track.on .dot::after { content: ""; width: 11px; height: 11px; border-radius: 50%; background: var(--gold-dark); }
+  .track.on { background: rgba(232,214,184,.8); }
+  .track .tt { flex: 1; min-width: 0; }
+  .track b { display: block; font-family: var(--serif); font-weight: 600; font-size: 17px; line-height: 1.15; }
+  .track small { display: block; font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .track .play { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,251,244,.85); box-shadow: inset 0 0 0 1px rgba(140,99,48,.2); }
+  .track .play svg { width: 16px; height: 16px; fill: var(--gold-dark); }
+  .credit { margin: 8px 2px 0; font-size: 11.5px; line-height: 1.4; color: var(--muted); }
+  .credit a { color: inherit; }
+  /* Кнопка звука в тренировке — справа от полосы прогресса */
+  .mbtn { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; }
+  .mbtn svg { width: 20px; height: 20px; stroke: var(--ink); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
   .tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .tool { border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; text-align: center; }
   .tool .pic { aspect-ratio: 1; }
@@ -139,24 +156,58 @@
   .count { margin: 8px 0 0; text-align: center; font-size: 14px; color: var(--muted); }
   .wtitle { margin: 2px 0 12px; text-align: center; font-size: clamp(30px, 9vw, 40px); }
 
-  .wphoto { position: relative; height: clamp(320px, 56vh, 520px); border-radius: 22px; overflow: hidden; box-shadow: 0 8px 20px rgba(120,88,40,.15); }
-  /* Видео упражнения: лежит под таймером и кнопками, пока не загрузилось — видно фото (poster / фон блока) */
-  .wphoto video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: transparent; pointer-events: none; }
-  .timer { position: absolute; left: 50%; bottom: 88px; width: 150px; height: 150px; transform: translateX(-50%); border-radius: 50%; background: rgba(28,21,16,.22); }
-  .timer svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-  .timer circle { fill: none; stroke-width: 5; }
-  .timer .track { stroke: rgba(255,255,255,.3); }
-  .timer .arc { stroke: #fff; stroke-linecap: round; }
-  .timer .time { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 34px; font-weight: 400; letter-spacing: .02em; font-variant-numeric: tabular-nums; text-shadow: 0 1px 6px rgba(0,0,0,.25); }
-  .rbtn { position: absolute; bottom: 22px; width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,251,244,.35); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.6); }
-  .rbtn svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .rbtn:disabled { opacity: .35; cursor: default; }
-  #prevBtn { left: 16px; } #nextBtn { right: 16px; }
-  #pauseBtn { left: 50%; bottom: 18px; width: 54px; height: 54px; transform: translateX(-50%); background: rgba(255,251,244,.92); }
-  #pauseBtn svg { stroke: var(--ink); fill: var(--ink); stroke-width: 0; width: 20px; height: 20px; }
+  .wphoto { position: relative; height: clamp(260px, 50vh, 500px); border-radius: 22px; overflow: hidden; box-shadow: 0 8px 20px rgba(120,88,40,.15); }
+  /* Видео показывается целиком (вертикальное видео не обрезается), по бокам — размытый кадр.
+     Пока видео не загрузилось — видно фото (poster / фон блока). Для упражнений без видео (мяч 4 см) — фото как раньше */
+  .wphoto.has-video::before { content: ""; position: absolute; inset: -24px; background: inherit; filter: blur(18px) brightness(.92); transform: scale(1.05); }
+  .wphoto video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: transparent; pointer-events: none; }
+
+  /* Панель управления — под видео/фото, ничего не закрывает */
+  .wctrl { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding: 10px 18px; border-radius: 26px; }
+  .cbtn { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; flex: none;
+          background: rgba(255,251,244,.75); box-shadow: inset 0 0 0 1px rgba(140,99,48,.18); }
+  .cbtn svg { width: 22px; height: 22px; stroke: var(--ink); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .cbtn:disabled { opacity: .35; cursor: default; }
+  /* Таймер — он же кнопка паузы: круг прогресса, время и значок паузы/продолжения */
+  .tbtn { position: relative; width: 96px; height: 96px; flex: none; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: rgba(255,251,244,.92); box-shadow: 0 6px 16px rgba(120,80,30,.16); }
+  .tbtn .ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+  .tbtn circle { fill: none; stroke-width: 5; }
+  .tbtn .track { stroke: rgba(140,99,48,.16); }
+  .tbtn .arc { stroke: var(--gold-dark); stroke-linecap: round; }
+  .tbtn .time { position: relative; color: var(--ink); font-size: 24px; line-height: 1; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+  .tbtn .picon { position: relative; width: 17px; height: 17px; fill: var(--gold-dark); stroke: none; }
 
   .wnote { margin-top: 12px; padding: 16px 18px; border-radius: 20px; text-align: center; }
-  .wnote p { margin: 0; font-size: 15px; line-height: 1.4; }
+  .wnote p { margin: 0; }
+  /* Текст упражнения — ровными строками: выравнивание по ширине и переносы слов */
+  .wnote p#wtext { margin: 0; font-size: 15px; line-height: 1.42; text-align: justify; text-align-last: left;
+                   -webkit-hyphens: auto; hyphens: auto; overflow-wrap: break-word; }
+
+  /* Весь экран тренировки помещается в высоту телефона: видео занимает всё свободное место,
+     а если текст длинный — видео немного уменьшается, а текст прокручивается внутри своей карточки */
+  #scrWork:not([hidden]) {
+    display: flex; flex-direction: column;
+    height: 100vh; height: 100dvh; height: var(--tg-viewport-stable-height, 100dvh);
+    padding-bottom: calc(var(--safe-b) + 12px); overflow: hidden;
+  }
+  #scrWork .count { margin-top: 6px; font-size: 13px; }
+  #scrWork .wtitle { margin: 0 0 8px; font-size: clamp(26px, 7.5vw, 34px); line-height: 1.1; }
+  #scrWork .wstage { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  #scrWork .wphoto { flex: 1 1 auto; height: auto; min-height: 200px; }
+  #scrWork .wctrl { flex: none; margin-top: 10px; padding: 8px 16px; }
+  #scrWork .tbtn { width: 82px; height: 82px; }
+  #scrWork .tbtn .time { font-size: 21px; }
+  #scrWork .cbtn { width: 48px; height: 48px; }
+  #scrWork .wnote { flex: 0 1 auto; min-height: 0; max-height: 36%; margin-top: 10px; padding: 12px 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  #scrWork .wnote .nextline { margin-top: 8px; font-size: 13px; }
+  /* Низкие экраны (iPhone SE, маленькие Android): чуть компактнее, чтобы текст влезал без прокрутки */
+  @media (max-height: 760px) {
+    #scrWork .wtitle { font-size: clamp(24px, 7vw, 30px); margin-bottom: 6px; }
+    #scrWork .wnote { padding: 10px 14px; max-height: 42%; }
+    #scrWork .wphoto { min-height: 170px; }
+    #scrWork .wnote p#wtext { font-size: 14px; line-height: 1.36; }
+    #scrWork .wnote .nextline { margin-top: 6px; font-size: 12.5px; }
+  }
   .wnote .nextline { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; font-size: 13.5px; color: var(--muted); }
   .wnote .nextline svg { width: 18px; height: 18px; stroke: var(--gold-dark); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -245,6 +296,12 @@
   <h2>Режим нагрузки</h2>
   <div class="levels" id="levels"></div>
 
+  <div id="musicBlock" hidden>
+    <h2>Музыка</h2>
+    <div class="tracks" id="tracks"></div>
+    <p class="credit" id="musicCredit"></p>
+  </div>
+
   <p class="notice glass" id="setupNotice" hidden></p>
 
   <div class="start-wrap">
@@ -252,24 +309,32 @@
   </div>
 </main>
 
+<audio id="bgm" loop preload="none"></audio>
+
 <!-- ===== Тренировка ===== -->
 <main class="scr" id="scrWork" hidden>
   <div class="wtop">
     <button class="back" id="workBack" type="button" aria-label="Выйти из тренировки"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
     <div class="bar" id="bar"></div>
+    <button class="mbtn" id="musicBtn" type="button" aria-label="Выключить музыку" hidden><svg viewBox="0 0 24 24" id="musicIcon"></svg></button>
   </div>
   <p class="count" id="wcount"></p>
   <h1 class="wtitle" id="wtitle"></h1>
 
+  <div class="wstage" id="wstage">
   <div class="wphoto ph" id="wphoto">
     <video id="wvideo" muted loop playsinline webkit-playsinline preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true" hidden></video>
-    <div class="timer">
-      <svg viewBox="0 0 100 100"><circle class="track" cx="50" cy="50" r="45"/><circle class="arc" id="arc" cx="50" cy="50" r="45"/></svg>
-      <div class="time" id="wtime">00:50</div>
-    </div>
-    <button class="rbtn" id="prevBtn" type="button" aria-label="Предыдущее упражнение"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
-    <button class="rbtn" id="pauseBtn" type="button" aria-label="Пауза"><svg viewBox="0 0 24 24" id="pauseIcon"></svg></button>
-    <button class="rbtn" id="nextBtn" type="button" aria-label="Следующий этап"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+
+  <div class="wctrl glass">
+    <button class="cbtn" id="prevBtn" type="button" aria-label="Предыдущее упражнение"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="tbtn" id="pauseBtn" type="button" aria-label="Пауза">
+      <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="45"/><circle class="arc" id="arc" cx="50" cy="50" r="45"/></svg>
+      <span class="time" id="wtime">00:50</span>
+      <svg class="picon" viewBox="0 0 24 24" id="pauseIcon" aria-hidden="true"></svg>
+    </button>
+    <button class="cbtn" id="nextBtn" type="button" aria-label="Следующий этап"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
   </div>
 
   <div class="wnote glass">
@@ -391,6 +456,7 @@
   function show(id) {
     SCREENS.forEach(function (s) { $(s).hidden = s !== id; });
     if (id !== 'scrWork') { var v = $('wvideo'); if (v) v.pause(); }   // ушли с тренировки — видео не играет в фоне
+    if (window.__musicOnShow) window.__musicOnShow(id);   // музыка: см. раздел «Музыка»
     window.scrollTo(0, 0);
     try { if (tg) { if (id === 'scrWork') tg.enableClosingConfirmation(); else tg.disableClosingConfirmation(); } } catch (e) {}
   }
@@ -549,6 +615,7 @@
       if (n >= 5) longMin = n;
     }
     $('durs').querySelector('[data-v="10"] b').textContent = longMin;
+    renderMusic();
     Array.prototype.forEach.call($('levels').children, function (b) {
       var locked = !!setup.tool && !isAvailable(setup.tool, b.dataset.v);
       b.classList.toggle('locked', locked);
@@ -556,6 +623,95 @@
     });
   }
   $('setupBack').addEventListener('click', function () { show('scrMenu'); });
+
+  /* ---------- Музыка ----------
+     Треки берутся из exercises.json → music (title, author, file, license, source). Показываются только треки с файлом.
+     Музыка играет весь цикл тренировки (и упражнения, и отдых), по кругу, ставится на паузу вместе с таймером. */
+  var MUSIC_VOLUME = 0.45;
+  var bgm = $('bgm');
+  // Смена экрана: на тренировке музыкой управляет syncMusic; прослушивание играет только в настройках; иначе — тишина
+  window.__musicOnShow = function (id) {
+    if (id === 'scrWork') { preview = null; return; }
+    if (id === 'scrSetup' && preview) return;
+    preview = null; bgm.pause();
+  };
+  var preview = null;   // id трека, который сейчас слушают в настройках
+  function tracks() { return ((library && library.music) || []).filter(function (t) { return t && t.id && t.file && t.title; }); }
+  function findTrack(id) { return tracks().filter(function (t) { return t.id === id; })[0] || null; }
+  function playIcon(on) { return on ? '<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>' : '<path d="M8 5.5v13l11-6.5z"/>'; }
+  function bgmLoad(t) {
+    if (bgm.dataset.src !== t.file) { bgm.dataset.src = t.file; bgm.src = encodeURI(t.file); }
+    bgm.volume = MUSIC_VOLUME;
+  }
+  function bgmPlay() { var p = bgm.play(); if (p && p.catch) p.catch(function () {}); }
+  function stopPreview() { if (preview) { preview = null; bgm.pause(); renderMusic(); } }
+  bgm.addEventListener('error', function () {
+    if (preview) { preview = null; renderMusic(); toast('Не удалось загрузить трек.'); }
+  });
+
+  function renderMusic() {
+    var list = tracks(), box = $('tracks');
+    $('musicBlock').hidden = !list.length;
+    if (!list.length) return;
+    if (setup.music && setup.music !== 'none' && !findTrack(setup.music)) setup.music = 'none';   // трек убрали из списка
+    var cur = setup.music || 'none';
+    box.textContent = '';
+    [{ id: 'none', title: 'Без музыки' }].concat(list).forEach(function (t) {
+      var b = document.createElement('div');
+      b.className = 'track glass' + (cur === t.id ? ' on' : '');
+      b.setAttribute('role', 'radio'); b.setAttribute('tabindex', '0'); b.setAttribute('aria-checked', cur === t.id ? 'true' : 'false');
+      b.innerHTML = '<span class="dot"></span><span class="tt"><b></b><small></small></span>';
+      b.querySelector('b').textContent = t.title;
+      b.querySelector('small').textContent = t.id === 'none' ? 'Тренировка в тишине' : (t.author || '');
+      var choose = function () { setup.music = t.id; saveSetup(); if (preview && preview !== t.id) stopPreview(); renderMusic(); };
+      b.addEventListener('click', choose);
+      b.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(); } });
+      if (t.id !== 'none') {
+        var pl = document.createElement('button');
+        pl.type = 'button'; pl.className = 'play';
+        pl.setAttribute('aria-label', preview === t.id ? 'Остановить' : 'Послушать');
+        pl.innerHTML = '<svg viewBox="0 0 24 24">' + playIcon(preview === t.id) + '</svg>';
+        pl.addEventListener('click', function (e) {
+          e.stopPropagation();
+          if (preview === t.id) { stopPreview(); return; }
+          setup.music = t.id; saveSetup();
+          preview = t.id; bgmLoad(t); bgm.currentTime = 0; bgmPlay(); renderMusic();
+        });
+        b.appendChild(pl);
+      }
+      box.appendChild(b);
+    });
+    // Указание автора и лицензии (для треков CC BY это обязательно)
+    var sel = findTrack(cur), cr = $('musicCredit');
+    cr.textContent = '';
+    if (sel) {
+      cr.appendChild(document.createTextNode('Музыка: «' + sel.title + '»' + (sel.author ? ' — ' + sel.author : '') + (sel.license ? ' · ' + sel.license : '')));
+      if (sel.source) {
+        cr.appendChild(document.createTextNode(' · '));
+        var a = document.createElement('a'); a.href = sel.source; a.textContent = 'источник'; a.target = '_blank'; a.rel = 'noopener';
+        a.addEventListener('click', function (e) { if (tg && tg.openLink) { e.preventDefault(); tg.openLink(sel.source); } });
+        cr.appendChild(a);
+      }
+    }
+  }
+
+  // Музыка в тренировке: играет, пока идёт тренировка и не стоит пауза
+  function syncMusic() {
+    var t = S && S.music && !S.musicOff ? findTrack(S.music) : null;
+    $('musicBtn').hidden = !(S && S.music && findTrack(S.music));
+    $('musicIcon').innerHTML = S && S.musicOff
+      ? '<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9l4 6M21 9l-4 6"/>'
+      : '<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8.5 8.5 0 010 12"/>';
+    $('musicBtn').setAttribute('aria-label', S && S.musicOff ? 'Включить музыку' : 'Выключить музыку');
+    if (preview) return;
+    var play = t && (S.phase === 'exercise' || S.phase === 'rest') && !S.paused && !$('scrWork').hidden;
+    if (!play) { bgm.pause(); return; }
+    bgmLoad(t); bgmPlay();
+  }
+  $('musicBtn').addEventListener('click', function () {
+    if (!S) return;
+    S.musicOff = !S.musicOff; persist(); syncMusic();
+  });
 
   $('startBtn').addEventListener('click', function () {
     if (DURATIONS.indexOf(setup.duration) < 0) { toast('Выберите длительность'); return; }
@@ -565,12 +721,15 @@
     if (!isAvailable(setup.tool, setup.level)) { info(lockedText(setup.tool, setup.level)); return; }
     var btn = $('startBtn');
     btn.disabled = true;
+    preview = null;
+    var tr = setup.music && setup.music !== 'none' ? findTrack(setup.music) : null;
+    if (tr) { bgmLoad(tr); bgm.currentTime = 0; bgmPlay(); } else bgm.pause();
     getLibrary().then(function () {
       btn.disabled = false;
       var list = buildProgram(setup.tool, setup.level, setup.duration);
-      if (!list) { toast('Для выбранной комбинации пока нет полной программы упражнений.'); return; }
+      if (!list) { bgm.pause(); toast('Для выбранной комбинации пока нет полной программы упражнений.'); return; }
       startSession(list);
-    }).catch(function () { btn.disabled = false; toast('Не удалось загрузить упражнения. Проверьте интернет.'); });
+    }).catch(function () { btn.disabled = false; bgm.pause(); toast('Не удалось загрузить упражнения. Проверьте интернет.'); });
   });
 
   /* ---------- Тренировка ----------
@@ -596,7 +755,8 @@
       list: list, planned: list.length, idx: 0, phase: 'exercise', paused: false,
       left: EXERCISE_SEC * 1000, len: EXERCISE_SEC * 1000,
       exSec: list.map(function () { return 0; }), doneEx: list.map(function () { return false; }),
-      restSec: 0, startedAt: Date.now(), elapsedSec: 0, finishedAt: null
+      restSec: 0, startedAt: Date.now(), elapsedSec: 0, finishedAt: null,
+      music: setup.music && setup.music !== 'none' && findTrack(setup.music) ? setup.music : null, musicOff: false
     };
     buildBar();
     show('scrWork');
@@ -621,6 +781,7 @@
   }
   function finish() {
     S.phase = 'done'; S.paused = true; S.finishedAt = Date.now();
+    bgm.pause();
     persist();
     saveResult('completed').then(showSaveStatus);
     renderDone();
@@ -661,12 +822,12 @@
      и ставится на паузу вместе с таймером. Нет видео или файл не загрузился — остаётся фото упражнения. */
   var vid = $('wvideo');
   vid.muted = true;   // iOS проверяет именно свойство, атрибута мало
-  vid.addEventListener('error', function () { vid.hidden = true; vid.dataset.failed = vid.dataset.src || ''; });
+  vid.addEventListener('error', function () { vid.hidden = true; vid.dataset.failed = vid.dataset.src || ''; $('wphoto').classList.remove('has-video'); });
 
   // src — путь к видео, poster — фото, visible — показывать сейчас или только подгрузить заранее
   function setVideo(src, poster, visible) {
     if (!src) {
-      vid.hidden = true; vid.pause();
+      vid.hidden = true; vid.pause(); $('wphoto').classList.remove('has-video');
       if (vid.dataset.src) { vid.dataset.src = ''; vid.removeAttribute('src'); vid.load(); }
       return;
     }
@@ -676,6 +837,7 @@
       vid.src = encodeURI(src);
     }
     vid.hidden = !visible || vid.dataset.failed === src;
+    $('wphoto').classList.toggle('has-video', !vid.hidden);
     syncVideo();
   }
   function restartVideo() { try { vid.currentTime = 0; } catch (e) {} }
@@ -688,6 +850,7 @@
 
   function renderPause() {
     syncVideo();
+    syncMusic();
     $('pauseIcon').innerHTML = S.paused ? '<path d="M8 5.5v13l11-6.5z"/>' : '<rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/>';
     $('pauseBtn').setAttribute('aria-label', S.paused ? 'Продолжить' : 'Пауза');
   }
