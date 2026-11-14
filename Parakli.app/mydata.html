@@ -224,13 +224,13 @@
     </div>
 
     <div class="field idrow" id="w-tgid">
-      <label for="f-tgid">Telegram ID для входа</label>
+      <label for="f-tgid">Ник для входа</label>
       <div class="box">
         <svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14.5 10h3.5M14.5 13.5h3.5"/></svg>
         <input id="f-tgid" type="text" readonly tabindex="-1" aria-describedby="tgidNote">
         <button class="copy" type="button" id="copyTgid">Копировать</button>
       </div>
-      <p class="idnote" id="tgidNote">С этим ID и паролем можно войти в аккаунт с другого Telegram. Сохраните его.</p>
+      <p class="idnote" id="tgidNote">С этим ником и паролем можно войти в аккаунт с другого Telegram.</p>
     </div>
 
     <div class="field" id="w-password">
@@ -370,7 +370,12 @@
   // Telegram ID аккаунта и статус подтверждения почты
   function renderAccountInfo(u) {
     if (!u) return;
-    $('f-tgid').value = u.telegram_id || '';
+    // Вход по нику; если ника в Telegram нет — по Telegram ID
+    $('f-tgid').value = u.username || String(u.telegram_id || '');
+    $('tgidNote').textContent = u.username
+      ? 'С этим ником и паролем можно войти в аккаунт с другого Telegram. Если смените ник в Telegram, откройте приложение — ник для входа обновится.'
+      : 'В Telegram у вас нет ника, поэтому для входа с другого Telegram используйте этот ID и пароль. Сохраните его.';
+    document.querySelector('label[for="f-tgid"]').textContent = u.username ? 'Ник для входа' : 'Telegram ID для входа';
     var st = $('emailStatus');
     st.hidden = !u.email;
     st.className = 'email-status' + (u.email_verified ? ' ok' : '');
@@ -389,7 +394,7 @@
   $('copyTgid').addEventListener('click', function () {
     var v = $('f-tgid').value;
     if (!v) return;
-    var done = function () { toast('ID скопирован.'); };
+    var done = function () { toast('Скопировано.'); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(v).then(done, function () { fallbackCopy(v); done(); });
     else { fallbackCopy(v); done(); }
   });
