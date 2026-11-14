@@ -236,10 +236,10 @@
 <section id="scrLogin" hidden>
   <button type="button" class="back" data-go="scrWelcome" aria-label="Назад"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
   <h1>Вход в аккаунт</h1>
-  <p class="sub">Введите Telegram ID, на который регистрировали аккаунт, и пароль. ID указан в приложении: Профиль → Мои данные. Если старый Telegram под рукой — отправьте нашему боту команду /id.</p>
+  <p class="sub">Введите ник в Telegram, с которого регистрировали аккаунт, и пароль. Если ника в Telegram нет — введите Telegram ID (он есть в «Моих данных» или у бота по команде /id).</p>
   <div class="field" data-for="l_account_id">
-    <svg class="ic" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16.2c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14.5 10h3.5M14.5 13.5h3.5"/></svg>
-    <input id="l_account_id" type="text" inputmode="numeric" placeholder="Telegram ID" autocomplete="off" maxlength="15">
+    <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.9 7.9"/></svg>
+    <input id="l_account_id" type="text" placeholder="@ник в Telegram" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" maxlength="33">
   </div>
   <div class="field" data-for="l_password">
     <svg class="ic" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 018 0v3"/></svg>
@@ -478,9 +478,11 @@
 
   /* ---------- Вход ---------- */
   var loginFields = ['l_account_id', 'l_password'], logging = false;
-  function loginId() { return $('l_account_id').value.replace(/\D/g, ''); }
+  // Ник (@username) или, если ника нет, Telegram ID из цифр
+  function loginId() { return $('l_account_id').value.trim().replace(/\s+/g, ''); }
   function loginReady() {
-    return loginId().length >= 3 && $('l_password').value.length >= 1;
+    var v = loginId();
+    return (/^@?[A-Za-z][A-Za-z0-9_]{3,31}$/.test(v) || /^\d{3,15}$/.test(v)) && $('l_password').value.length >= 1;
   }
   loginFields.forEach(function (id) {
     $(id).addEventListener('input', function () {
@@ -494,13 +496,13 @@
     if (logging || !loginReady()) return;
     logging = true; $('loginBtn').disabled = true; $('loginBtn').textContent = 'Входим…'; $('loginMsg').textContent = '';
     Parakli.login({
-      account_id: loginId(),
+      login: loginId(),
       password: $('l_password').value
     }).then(function (r) {
       if (r.ok) { Parakli.markVerified(); goMain(); return; }
       var m = $('loginMsg');
       if (r.status === 401 && r.data && r.data.error === 'wrong_credentials') {
-        m.textContent = 'Неверный Telegram ID или пароль.';
+        m.textContent = 'Неверный ник или пароль.';
         loginFields.forEach(function (id) { document.querySelector('.field[data-for="' + id + '"]').classList.add('invalid'); });
       } else if (r.status === 401) m.textContent = 'Откройте приложение из Telegram: отправьте боту команду /start.';
       else if (r.status === 429) m.textContent = 'Слишком много попыток. Попробуйте через несколько минут.';
