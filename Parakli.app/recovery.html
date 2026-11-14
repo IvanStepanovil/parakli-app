@@ -309,7 +309,7 @@
   </div>
 </main>
 
-<audio id="bgm" loop preload="none"></audio>
+<audio id="bgm" loop preload="none"></audio><!-- запасной плеер, если Web Audio недоступен -->
 
 <!-- ===== Тренировка ===== -->
 <main class="scr" id="scrWork" hidden>
@@ -627,27 +627,128 @@
   /* ---------- Музыка ----------
      Треки берутся из exercises.json → music (title, author, file, license, source). Показываются только треки с файлом.
      Музыка играет весь цикл тренировки (и упражнения, и отдых), по кругу, ставится на паузу вместе с таймером. */
-  var MUSIC_VOLUME = 0.45;
-  var bgm = $('bgm');
+  var MUSIC_VOLUME = 0.5;   // громкость музыки (0…1); треки выровнены по громкости заранее
+  /* Плеер фоновой музыки. Трек загружается целиком и повторяется через Web Audio — стык без паузы
+     (обычный <audio loop> на mp3 делает слышимую паузу при повторе). Тишина по краям трека обрезается.
+     Если Web Audio нет — запасной вариант через <audio loop>. */
+  var player = (function () {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    var el = $('bgm');
+    var ctx = null, gain = null, src = null, cur = null, active = false, cache = {}, silent = null;
+    var api = { onError: null };
+
+    function ensure() {
+      if (!AC) return null;
+      if (!ctx) {
+        try { ctx = new AC(); } catch (e) { AC = null; return null; }
+        gain = ctx.createGain(); gain.gain.value = MUSIC_VOLUME; gain.connect(ctx.destination);
+        // iOS 17+: звук как у медиа — играет и в беззвучном режиме, как видео
+        try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+      }
+      return ctx;
+    }
+    // Тихий WAV на 0,1 с: на старых iOS (без audioSession) включает «медийный» звук для Web Audio в беззвучном режиме
+    function silentWav() {
+      var n = 800, b = new Uint8Array(44 + n), v = new DataView(b.buffer), i;
+      function str(o, t) { for (i = 0; i < t.length; i++) b[o + i] = t.charCodeAt(i); }
+      str(0, 'RIFF'); v.setUint32(4, 36 + n, true); str(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+      v.setUint16(22, 1, true); v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true);
+      v.setUint16(34, 8, true); str(36, 'data'); v.setUint32(40, n, true);
+      for (i = 44; i < 44 + n; i++) b[i] = 128;
+      var bin = ''; for (i = 0; i < b.length; i++) bin += String.fromCharCode(b[i]);
+      return 'data:audio/wav;base64,' + btoa(bin);
+    }
+    // Вызывать прямо в обработчике нажатия: iOS разрешает звук только по действию пользователя
+    api.unlock = function () {
+      var c = ensure();
+      if (!c) return;
+      if (c.state !== 'running') { try { c.resume(); } catch (e) {} }
+      if (!navigator.audioSession && /iP(hone|ad|od)/.test(navigator.userAgent) && !silent) {
+        try { silent = new Audio(silentWav()); silent.loop = true; var p = silent.play(); if (p && p.catch) p.catch(function () {}); } catch (e) {}
+      }
+    };
+
+    // Границы звука: обрезаем тишину в начале и в конце (не больше 0,15 с с каждой стороны)
+    function edges(buf) {
+      var thr = 0.001, n = buf.length, lim = Math.floor(buf.sampleRate * 0.15), chans = [], c, i, s0 = 0, s1 = n;
+      for (c = 0; c < buf.numberOfChannels; c++) chans.push(buf.getChannelData(c));
+      function loud(k) { for (var j = 0; j < chans.length; j++) if (Math.abs(chans[j][k]) > thr) return true; return false; }
+      for (i = 0; i < Math.min(lim, n); i++) if (loud(i)) break;
+      if (i < lim) s0 = i;
+      for (i = n - 1; i > Math.max(n - 1 - lim, 0); i--) if (loud(i)) break;
+      if (i > n - 1 - lim) s1 = i + 1;
+      return { start: s0 / buf.sampleRate, end: s1 / buf.sampleRate };
+    }
+    function load(t) {
+      if (cache[t.file]) return cache[t.file];
+      cache[t.file] = fetch(encodeURI(t.file)).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.arrayBuffer();
+      }).then(function (ab) {
+        return new Promise(function (res, rej) {
+          var p = ctx.decodeAudioData(ab, res, rej);   // старый Safari поддерживает только вариант с колбэками
+          if (p && p.then) p.then(res, rej);
+        });
+      }).then(function (buf) {
+        var e = edges(buf);
+        return { buf: buf, start: e.start, end: e.end };
+      });
+      cache[t.file].catch(function () { delete cache[t.file]; });
+      return cache[t.file];
+    }
+    function stopSrc() { if (src) { try { src.stop(); } catch (e) {} try { src.disconnect(); } catch (e) {} src = null; } }
+
+    // Играть трек по кругу. restart — начать сначала (иначе продолжить с того же места)
+    api.play = function (t, restart) {
+      active = true;
+      if (!ensure()) {   // запасной вариант
+        if (el.dataset.src !== t.file) { el.dataset.src = t.file; el.src = encodeURI(t.file); }
+        el.loop = true; el.volume = MUSIC_VOLUME;
+        if (restart) { try { el.currentTime = 0; } catch (e) {} }
+        var p = el.play(); if (p && p.catch) p.catch(function () {});
+        return;
+      }
+      if (cur === t.file && src && !restart) { if (ctx.state !== 'running') ctx.resume(); return; }
+      stopSrc(); cur = t.file;
+      load(t).then(function (info) {
+        if (cur !== t.file || src) return;            // пока грузилось, выбрали другой трек
+        var s = ctx.createBufferSource();
+        s.buffer = info.buf; s.loop = true; s.loopStart = info.start; s.loopEnd = info.end;
+        s.connect(gain); s.start(0, info.start); src = s;
+        if (active) { if (ctx.state !== 'running') ctx.resume(); } else ctx.suspend();
+      }, function () {
+        if (cur === t.file) { cur = null; if (api.onError) api.onError(t); }
+      });
+      if (ctx.state !== 'running' && active) ctx.resume();
+    };
+    api.pause = function () {
+      active = false;
+      if (ctx) { try { ctx.suspend(); } catch (e) {} } else el.pause();
+    };
+    api.stop = function () {
+      active = false; stopSrc(); cur = null;
+      if (ctx) { try { ctx.suspend(); } catch (e) {} } else el.pause();
+    };
+    api.current = function () { return active ? cur || el.dataset.src || null : null; };
+    api.load = function (t) { if (ensure()) load(t).catch(function () {}); };   // заранее подгрузить
+    return api;
+  })();
+
   // Смена экрана: на тренировке музыкой управляет syncMusic; прослушивание играет только в настройках; иначе — тишина
   window.__musicOnShow = function (id) {
     if (id === 'scrWork') { preview = null; return; }
     if (id === 'scrSetup' && preview) return;
-    preview = null; bgm.pause();
+    preview = null; player.pause();
   };
   var preview = null;   // id трека, который сейчас слушают в настройках
   function tracks() { return ((library && library.music) || []).filter(function (t) { return t && t.id && t.file && t.title; }); }
   function findTrack(id) { return tracks().filter(function (t) { return t.id === id; })[0] || null; }
   function playIcon(on) { return on ? '<rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/>' : '<path d="M8 5.5v13l11-6.5z"/>'; }
-  function bgmLoad(t) {
-    if (bgm.dataset.src !== t.file) { bgm.dataset.src = t.file; bgm.src = encodeURI(t.file); }
-    bgm.volume = MUSIC_VOLUME;
-  }
-  function bgmPlay() { var p = bgm.play(); if (p && p.catch) p.catch(function () {}); }
-  function stopPreview() { if (preview) { preview = null; bgm.pause(); renderMusic(); } }
-  bgm.addEventListener('error', function () {
+  function stopPreview() { if (preview) { preview = null; player.stop(); renderMusic(); } }
+  player.onError = function () {
     if (preview) { preview = null; renderMusic(); toast('Не удалось загрузить трек.'); }
-  });
+  };
+  $('bgm').addEventListener('error', function () { if (player.onError) player.onError(); });
 
   function renderMusic() {
     var list = tracks(), box = $('tracks');
@@ -675,7 +776,8 @@
           e.stopPropagation();
           if (preview === t.id) { stopPreview(); return; }
           setup.music = t.id; saveSetup();
-          preview = t.id; bgmLoad(t); bgm.currentTime = 0; bgmPlay(); renderMusic();
+          player.unlock();
+          preview = t.id; player.play(t, true); renderMusic();
         });
         b.appendChild(pl);
       }
@@ -683,6 +785,7 @@
     });
     // Указание автора и лицензии (для треков CC BY это обязательно)
     var sel = findTrack(cur), cr = $('musicCredit');
+    if (sel) player.load(sel);   // подгружаем заранее, чтобы на старте тренировки музыка заиграла сразу
     cr.textContent = '';
     if (sel) {
       cr.appendChild(document.createTextNode('Музыка: «' + sel.title + '»' + (sel.author ? ' — ' + sel.author : '') + (sel.license ? ' · ' + sel.license : '')));
@@ -705,12 +808,12 @@
     $('musicBtn').setAttribute('aria-label', S && S.musicOff ? 'Включить музыку' : 'Выключить музыку');
     if (preview) return;
     var play = t && (S.phase === 'exercise' || S.phase === 'rest') && !S.paused && !$('scrWork').hidden;
-    if (!play) { bgm.pause(); return; }
-    bgmLoad(t); bgmPlay();
+    if (!play) { player.pause(); return; }
+    player.play(t, false);
   }
   $('musicBtn').addEventListener('click', function () {
     if (!S) return;
-    S.musicOff = !S.musicOff; persist(); syncMusic();
+    player.unlock(); S.musicOff = !S.musicOff; persist(); syncMusic();
   });
 
   $('startBtn').addEventListener('click', function () {
@@ -723,13 +826,13 @@
     btn.disabled = true;
     preview = null;
     var tr = setup.music && setup.music !== 'none' ? findTrack(setup.music) : null;
-    if (tr) { bgmLoad(tr); bgm.currentTime = 0; bgmPlay(); } else bgm.pause();
+    if (tr) { player.unlock(); player.play(tr, true); } else player.stop();
     getLibrary().then(function () {
       btn.disabled = false;
       var list = buildProgram(setup.tool, setup.level, setup.duration);
-      if (!list) { bgm.pause(); toast('Для выбранной комбинации пока нет полной программы упражнений.'); return; }
+      if (!list) { player.stop(); toast('Для выбранной комбинации пока нет полной программы упражнений.'); return; }
       startSession(list);
-    }).catch(function () { btn.disabled = false; bgm.pause(); toast('Не удалось загрузить упражнения. Проверьте интернет.'); });
+    }).catch(function () { btn.disabled = false; player.stop(); toast('Не удалось загрузить упражнения. Проверьте интернет.'); });
   });
 
   /* ---------- Тренировка ----------
@@ -781,7 +884,7 @@
   }
   function finish() {
     S.phase = 'done'; S.paused = true; S.finishedAt = Date.now();
-    bgm.pause();
+    player.stop();
     persist();
     saveResult('completed').then(showSaveStatus);
     renderDone();
@@ -815,7 +918,7 @@
     if (!S || S.phase === 'done') return;
     S.paused = p; renderPause(); persist();
   }
-  $('pauseBtn').addEventListener('click', function () { setPaused(!S.paused); });
+  $('pauseBtn').addEventListener('click', function () { player.unlock(); setPaused(!S.paused); });
 
   /* ---------- Видео упражнения ----------
      Один <video> на экран тренировки. Видео идёт по кругу, без звука (иначе Telegram/iOS не даст запустить его сам)
