@@ -6,6 +6,7 @@
 <title>Восстановление — Паракли</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="api.js"></script>
+<script src="workout-media.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
@@ -86,6 +87,13 @@
   .exlist { display: flex; flex-direction: column; gap: 14px; }
   .ex { border-radius: 22px; overflow: hidden; }
   .ex .pic { aspect-ratio: 4 / 3; }
+  .side-note { color: var(--gold-dark); font-weight: 500; }
+  .variant-choice { display: block; margin: 10px 0; font-size: 14px; }
+  .variant-choice select { max-width: 100%; margin: 6px 0; padding: 8px 12px; border: 1px solid #c8ad87; border-radius: 10px; background: #fffaf1; color: var(--ink); font: inherit; }
+  .ex .pic video { width: 100%; height: 100%; object-fit: contain; background: #eee2cf; }
+  .ex .media-options { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+  .ex .media-options button { padding: 7px 10px; border-radius: 10px; background: #f6ecdc; font-size: 13px; }
+  .ex .media-options button[aria-pressed="true"] { background: #b98a52; color: white; }
   .ex .pic img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .ex .body { padding: 14px 16px 18px; }
   .ex h3 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: clamp(23px, 6.6vw, 27px); line-height: 1.1; }
@@ -339,6 +347,10 @@
 
   <div class="wnote glass">
     <p id="wtext"></p>
+    <p id="wside" class="side-note" role="status" hidden></p>
+    <label id="wvariantWrap" class="variant-choice" hidden>Вариант упражнения
+      <select id="wvariant" aria-label="Вариант упражнения"></select>
+    </label>
     <p class="nextline"><svg viewBox="0 0 24 24"><path d="M5 9h11v5a5 5 0 01-5 5h-1a5 5 0 01-5-5V9z"/><path d="M16 11h1.5a2.5 2.5 0 010 5H16"/><path d="M8 3.5v2M11 3.5v2M14 3.5v2"/></svg><span id="wnext"></span></p>
   </div>
 </main>
@@ -417,7 +429,7 @@
     { id: 'ball4', name: 'Мяч 4 см' }, { id: 'ball6', name: 'Мяч 6 см' }, { id: 'peanut', name: 'Арахис' }
   ];
   // Какие режимы уже доступны для массажёра. Чего нет в списке — «в разработке»
-  var AVAILABLE = { ball4: ['light', 'intense'], ball6: ['light', 'intense'], peanut: ['light', 'intense'] };
+  var AVAILABLE = { ball4: ['light'], ball6: ['light', 'intense'], peanut: ['light', 'intense'] };
   var LOCKED_TEXT = {
     'ball6-intense': 'Извините, интенсивный режим для мяча 6 см пока в разработке.',
     'peanut-intense': 'Извините, интенсивный режим для массажёра «Арахис» пока в разработке.',
@@ -454,6 +466,7 @@
 
   var SCREENS = ['scrMenu', 'scrZone', 'scrEnc', 'scrSetup', 'scrWork', 'scrDone'];
   function show(id) {
+    document.querySelectorAll('#exlist video').forEach(function (v) { v.pause(); });
     SCREENS.forEach(function (s) { $(s).hidden = s !== id; });
     if (id !== 'scrWork') { var v = $('wvideo'); if (v) v.pause(); }   // ушли с тренировки — видео не играет в фоне
     if (window.__musicOnShow) window.__musicOnShow(id);   // музыка: см. раздел «Музыка»
@@ -494,7 +507,7 @@
     for (var i = 0; i < count; i++) {
       var e = exById(ids[i]);
       if (!e) return null;
-      out.push({ id: e.id, name: e.name, text: e.text || '', image: e.image || '', video: e.video || '' });
+      out.push({ id: e.id, name: e.name, text: e.text || '', image: e.image || '', video: e.video || '', bilateral: !!e.bilateral, sideVideos: e.sideVideos || [], variants: e.variants || [] });
     }
     return out;
   }
@@ -548,6 +561,34 @@
         tags[0].textContent = (find(TOOLS, e.tool) || { name: e.tool }).name;
         tags[1].textContent = (find(LEVELS, e.level) || { name: e.level }).name + ' режим';
         card.querySelector('p').textContent = e.text;
+        var choices = [];
+        if (e.variants && e.variants.length) choices = e.variants;
+        else if (e.sideVideos && e.sideVideos.length > 1) {
+          choices = e.sideVideos.map(function (m, i) { return { name: i ? 'Другая сторона' : 'Первая сторона', video: m.video, image: m.image, text: e.text }; });
+        } else if (e.video) choices = [{ name: e.name, video: e.video, image: e.image, text: e.text }];
+        if (choices.length) {
+          var preview = document.createElement('video');
+          preview.controls = true; preview.muted = true; preview.playsInline = true; preview.preload = 'none';
+          preview.setAttribute('aria-label', 'Видео: ' + e.name);
+          var pic = card.querySelector('.pic'); pic.textContent = ''; pic.appendChild(preview);
+          var optionButtons = [];
+          function pickMedia(m, index) {
+            preview.pause(); preview.src = encodeURI(m.video);
+            if (m.image) preview.poster = encodeURI(m.image); else preview.removeAttribute('poster');
+            card.querySelector('p').textContent = m.text || e.text;
+            optionButtons.forEach(function (b, i) { b.setAttribute('aria-pressed', i === index ? 'true' : 'false'); });
+          }
+          if (choices.length > 1) {
+            var options = document.createElement('div'); options.className = 'media-options';
+            choices.forEach(function (m, i) {
+              var b = document.createElement('button'); b.type = 'button'; b.textContent = m.name;
+              b.addEventListener('click', function () { pickMedia(m, i); });
+              options.appendChild(b); optionButtons.push(b);
+            });
+            pic.insertAdjacentElement('afterend', options);
+          }
+          pickMedia(choices[0], 0);
+        }
         list.appendChild(card);
       });
     }).catch(function () {
@@ -565,6 +606,7 @@
   if (DURATIONS.indexOf(setup.duration) < 0) setup.duration = 5;
   if (!find(TOOLS, setup.tool)) setup.tool = null;
   if (!find(LEVELS, setup.level) || (setup.tool && !isAvailable(setup.tool, setup.level))) setup.level = null;
+  if (setup.tool === 'ball4') setup.level = 'light';
   function saveSetup() { store(SETUP_KEY, setup); }
 
   DURATIONS.forEach(function (d) {
@@ -581,7 +623,8 @@
     b.querySelector('span').textContent = t.name;
     b.addEventListener('click', function () {
       setup.tool = t.id;
-      if (setup.level && !isAvailable(t.id, setup.level)) setup.level = null;   // сбрасываем несовместимый режим
+      if (t.id === 'ball4') setup.level = 'light';
+      else if (setup.level && !isAvailable(t.id, setup.level)) setup.level = null;
       saveSetup(); renderSetup();
     });
     $('tools').appendChild(b);
@@ -617,6 +660,7 @@
     $('durs').querySelector('[data-v="10"] b').textContent = longMin;
     renderMusic();
     Array.prototype.forEach.call($('levels').children, function (b) {
+      b.hidden = setup.tool === 'ball4' && b.dataset.v === 'intense';
       var locked = !!setup.tool && !isAvailable(setup.tool, b.dataset.v);
       b.classList.toggle('locked', locked);
       b.querySelector('small').textContent = locked ? 'В разработке' : find(LEVELS, b.dataset.v).hint;
@@ -958,25 +1002,57 @@
     $('pauseBtn').setAttribute('aria-label', S.paused ? 'Продолжить' : 'Пауза');
   }
 
+  var mediaKey = '';
+  function renderVariantOptions(ex) {
+    var variants = ex.variants || [], select = $('wvariant');
+    select.textContent = '';
+    $('wvariantWrap').hidden = variants.length < 2;
+    variants.forEach(function (v, i) { var o = document.createElement('option'); o.value = String(i); o.textContent = v.name; select.appendChild(o); });
+    select.value = String((S.variantByEx || {})[S.idx] || 0);
+  }
+  function renderExerciseMedia() {
+    var ex = S.list[S.idx], variant = (S.variantByEx || {})[S.idx] || 0;
+    var media = ParakliWorkoutMedia.select(ex, variant, EXERCISE_SEC - S.left / 1000, EXERCISE_SEC);
+    var key = S.idx + '|' + variant + '|' + media.side + '|' + media.video;
+    $('wside').hidden = !media.hint;
+    $('wside').textContent = media.hint;
+    if (key !== mediaKey) {
+      mediaKey = key;
+      $('wtext').textContent = media.text;
+      setImg($('wphoto'), media.image);
+      setVideo(media.video, media.image, true);
+      restartVideo();
+    }
+  }
+  $('wvariant').addEventListener('change', function () {
+    if (!S || S.phase !== 'exercise') return;
+    if (!S.variantByEx) S.variantByEx = {};
+    S.variantByEx[S.idx] = parseInt(this.value, 10) || 0;
+    mediaKey = ''; renderExerciseMedia(); persist();
+  });
+
   function renderStage() {
     var ex = S.list[S.idx], last = S.idx >= S.planned - 1;
     var photo = $('wphoto');
     if (S.phase === 'exercise') {
       $('wcount').textContent = 'Упражнение ' + (S.idx + 1) + ' из ' + S.planned;
       $('wtitle').textContent = ex.name;
-      $('wtext').textContent = ex.text;
+      renderVariantOptions(ex);
+      mediaKey = '';
+      renderExerciseMedia();
       $('wnext').textContent = last ? 'Далее: завершение тренировки' : 'Далее: отдых ' + REST_SEC + ' секунд';
-      setImg(photo, ex.image);
-      setVideo(ex.video, ex.image, true);
+
     } else {
       $('wcount').textContent = 'Перед упражнением ' + (S.idx + 2) + ' из ' + S.planned;
       $('wtitle').textContent = 'Отдых';
+      $('wside').hidden = true; $('wvariantWrap').hidden = true;
       $('wtext').textContent = 'Расслабьтесь и спокойно подышите.';
       $('wnext').textContent = 'Далее: ' + S.list[S.idx + 1].name;
       setImg(photo, REST_IMAGE);
       // Пока отдыхаем, тихо подгружаем видео следующего упражнения, чтобы оно стартовало без задержки
       var nx = S.list[S.idx + 1];
-      setVideo(nx.video, nx.image, false);
+      var nextMedia = ParakliWorkoutMedia.select(nx, 0, 0, EXERCISE_SEC);
+      setVideo(nextMedia.video, nextMedia.image, false);
       restartVideo();
     }
     $('prevBtn').disabled = S.phase === 'exercise' && S.idx === 0;
@@ -990,6 +1066,7 @@
   // Сегмент заполняется только во время упражнения; на отдыхе он остаётся как был
   function renderTick() {
     $('wtime').textContent = fmt(S.left);
+    if (S.phase === 'exercise') renderExerciseMedia();
     $('arc').style.strokeDashoffset = C * (1 - S.left / S.len);
     var segs = $('bar').children;
     for (var i = 0; i < segs.length; i++) {
@@ -1097,6 +1174,10 @@
   /* ---------- Старт страницы ---------- */
   renderSetup();
   var saved = load(SESSION_KEY);
+  if (saved && !isAvailable(saved.tool, saved.level)) {
+    store(SESSION_KEY, null); saved = null;
+    toast('Этот режим больше недоступен. Выберите новую тренировку.');
+  }
   if (saved && saved.list && saved.list.length && saved.phase) {
     S = saved;
     if (S.phase === 'done') { saveResult('completed').then(showSaveStatus); renderDone(); show('scrDone'); }
