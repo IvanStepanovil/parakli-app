@@ -495,21 +495,65 @@
     return null;
   }
   function programIds(tool, level) { return (library && library.programs && library.programs[tool + '-' + level]) || []; }
-  // Сколько упражнений будет в тренировке: короткая — 5, длинная — вся программа (до 10)
+  // Банк заданий (exercises.json → banks): тренировка собирается случайно при каждом запуске
+  function bankIds(tool, level) { return (library && library.banks && library.banks[tool + '-' + level]) || null; }
+
+  // Сколько упражнений будет в тренировке: короткая — 5, длинная — вся программа / банк (до 10)
   function programCount(tool, level, duration) {
-    return duration === 5 ? 5 : Math.min(10, programIds(tool, level).length);
+    var ids = bankIds(tool, level) || programIds(tool, level);
+    return duration === 5 ? 5 : Math.min(10, ids.length);
   }
-  // Программа тренировки: упражнения по порядку из базы. Не хватает — null
-  function buildProgram(tool, level, duration) {
-    var ids = programIds(tool, level), count = programCount(tool, level, duration);
-    if (count < 5 || ids.length < count) return null;
-    var out = [];
-    for (var i = 0; i < count; i++) {
-      var e = exById(ids[i]);
-      if (!e) return null;
-      out.push({ id: e.id, name: e.name, text: e.text || '', image: e.image || '', video: e.video || '', bilateral: !!e.bilateral, sideVideos: e.sideVideos || [], variants: e.variants || [] });
+
+  // Банк → блоки: одиночное упражнение или связка сторон (одинаковый pair), стороны — в порядке из банка
+  function bankUnits(ids) {
+    var units = [], byPair = {};
+    ids.forEach(function (id) {
+      var e = exById(id);
+      if (!e) return;
+      if (e.pair) {
+        if (byPair[e.pair]) { byPair[e.pair].push(e); return; }
+        byPair[e.pair] = [e]; units.push(byPair[e.pair]);
+      } else units.push([e]);
+    });
+    return units;
+  }
+  function shuffle(a) {
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  // Случайный набор блоков ровно на count упражнений; связки сторон не разрываются и идут подряд
+  function pickFromBank(ids, count) {
+    function solve(list, need, from) {     // перебор с возвратом по перемешанному списку (банк маленький — мгновенно)
+      if (need === 0) return [];
+      for (var i = from; i < list.length; i++) {
+        if (list[i].length > need) continue;
+        var rest = solve(list, need - list[i].length, i + 1);
+        if (rest) return [list[i]].concat(rest);
+      }
+      return null;
     }
+    var picked = solve(shuffle(bankUnits(ids)), count, 0);
+    if (!picked) return null;
+    var out = [];
+    shuffle(picked).forEach(function (u) { u.forEach(function (e) { out.push(e); }); });   // случайный порядок блоков
     return out;
+  }
+
+  // Программа тренировки: из банка (случайно) или фиксированная по порядку. Не хватает — null
+  function buildProgram(tool, level, duration) {
+    var count = programCount(tool, level, duration), bank = bankIds(tool, level), list;
+    if (count < 5) return null;
+    if (bank) list = pickFromBank(bank, count);
+    else {
+      var ids = programIds(tool, level);
+      if (ids.length < count) return null;
+      list = ids.slice(0, count).map(exById);
+      if (list.some(function (e) { return !e; })) return null;
+    }
+    if (!list) return null;
+    return list.map(function (e) {
+      return { id: e.id, name: e.name, text: e.text || '', image: e.image || '', video: e.video || '', bilateral: !!e.bilateral, sideVideos: e.sideVideos || [], variants: e.variants || [] };
+    });
   }
 
   /* ---------- Меню ---------- */
