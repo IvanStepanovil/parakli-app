@@ -9,7 +9,8 @@
     "sideVideos: демонстрации двух сторон одного упражнения. При отсутствии второй записи используется та же демонстрация с подсказкой о смене стороны.",
     "variants: разные положения для одного упражнения; каждый вариант содержит name/text/video/image. Выбор варианта не создаёт новое упражнение.",
     "Отсутствующие видео и исходные соответствия перечислены в КАТАЛОГ_ВИДЕО.json рядом с приложением.",
-    "Музыка хранится в music; существующие авторы/лицензии/source сохраняются."
+    "Музыка хранится в music; существующие авторы/лицензии/source сохраняются.",
+    "Стороны у «Арахиса»: в исходных роликах снята правая сторона, поэтому у упражнений «— правая» используется файл …-left.mp4 (оригинал), у «— левая» — …-right.mp4 (отзеркаленная копия)."
   ],
   "exercises": [
     {
@@ -529,8 +530,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/glute-left.mp4",
-      "image": "видео/training-v2/peanut-light/glute-left.jpg",
+      "video": "видео/training-v2/peanut-light/glute-right.mp4",
+      "image": "видео/training-v2/peanut-light/glute-right.jpg",
       "side": "left",
       "pair": "peanut-light-glute"
     },
@@ -542,8 +543,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/glute-right.mp4",
-      "image": "видео/training-v2/peanut-light/glute-right.jpg",
+      "video": "видео/training-v2/peanut-light/glute-left.mp4",
+      "image": "видео/training-v2/peanut-light/glute-left.jpg",
       "side": "right",
       "pair": "peanut-light-glute"
     },
@@ -555,8 +556,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/glute-point-left.mp4",
-      "image": "видео/training-v2/peanut-light/glute-point-left.jpg",
+      "video": "видео/training-v2/peanut-light/glute-point-right.mp4",
+      "image": "видео/training-v2/peanut-light/glute-point-right.jpg",
       "side": "left",
       "pair": "peanut-light-glute-point"
     },
@@ -568,8 +569,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/glute-point-right.mp4",
-      "image": "видео/training-v2/peanut-light/glute-point-right.jpg",
+      "video": "видео/training-v2/peanut-light/glute-point-left.mp4",
+      "image": "видео/training-v2/peanut-light/glute-point-left.jpg",
       "side": "right",
       "pair": "peanut-light-glute-point"
     },
@@ -581,8 +582,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/calf-right.mp4",
-      "image": "видео/training-v2/peanut-light/calf-right.jpg",
+      "video": "видео/training-v2/peanut-light/calf-left.mp4",
+      "image": "видео/training-v2/peanut-light/calf-left.jpg",
       "side": "right",
       "pair": "peanut-light-calf"
     },
@@ -594,8 +595,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/calf-left.mp4",
-      "image": "видео/training-v2/peanut-light/calf-left.jpg",
+      "video": "видео/training-v2/peanut-light/calf-right.mp4",
+      "image": "видео/training-v2/peanut-light/calf-right.jpg",
       "side": "left",
       "pair": "peanut-light-calf"
     },
@@ -607,8 +608,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/foot-right.mp4",
-      "image": "видео/training-v2/peanut-light/foot-right.jpg",
+      "video": "видео/training-v2/peanut-light/foot-left.mp4",
+      "image": "видео/training-v2/peanut-light/foot-left.jpg",
       "side": "right",
       "pair": "peanut-light-foot"
     },
@@ -620,8 +621,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/foot-left.mp4",
-      "image": "видео/training-v2/peanut-light/foot-left.jpg",
+      "video": "видео/training-v2/peanut-light/foot-right.mp4",
+      "image": "видео/training-v2/peanut-light/foot-right.jpg",
       "side": "left",
       "pair": "peanut-light-foot"
     },
@@ -633,8 +634,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/inner-thigh-left.mp4",
-      "image": "видео/training-v2/peanut-light/inner-thigh-left.jpg",
+      "video": "видео/training-v2/peanut-light/inner-thigh-right.mp4",
+      "image": "видео/training-v2/peanut-light/inner-thigh-right.jpg",
       "side": "left",
       "pair": "peanut-light-inner-thigh"
     },
@@ -646,8 +647,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/inner-thigh-right.mp4",
-      "image": "видео/training-v2/peanut-light/inner-thigh-right.jpg",
+      "video": "видео/training-v2/peanut-light/inner-thigh-left.mp4",
+      "image": "видео/training-v2/peanut-light/inner-thigh-left.jpg",
       "side": "right",
       "pair": "peanut-light-inner-thigh"
     },
@@ -670,8 +671,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/triceps-left.mp4",
-      "image": "видео/training-v2/peanut-light/triceps-left.jpg",
+      "video": "видео/training-v2/peanut-light/triceps-right.mp4",
+      "image": "видео/training-v2/peanut-light/triceps-right.jpg",
       "side": "left",
       "pair": "peanut-light-triceps"
     },
@@ -683,8 +684,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/triceps-right.mp4",
-      "image": "видео/training-v2/peanut-light/triceps-right.jpg",
+      "video": "видео/training-v2/peanut-light/triceps-left.mp4",
+      "image": "видео/training-v2/peanut-light/triceps-left.jpg",
       "side": "right",
       "pair": "peanut-light-triceps"
     },
@@ -696,8 +697,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/deltoid-left.mp4",
-      "image": "видео/training-v2/peanut-light/deltoid-left.jpg",
+      "video": "видео/training-v2/peanut-light/deltoid-right.mp4",
+      "image": "видео/training-v2/peanut-light/deltoid-right.jpg",
       "side": "left",
       "pair": "peanut-light-deltoid"
     },
@@ -709,8 +710,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/deltoid-right.mp4",
-      "image": "видео/training-v2/peanut-light/deltoid-right.jpg",
+      "video": "видео/training-v2/peanut-light/deltoid-left.mp4",
+      "image": "видео/training-v2/peanut-light/deltoid-left.jpg",
       "side": "right",
       "pair": "peanut-light-deltoid"
     },
@@ -722,8 +723,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/front-shoulder-left.mp4",
-      "image": "видео/training-v2/peanut-light/front-shoulder-left.jpg",
+      "video": "видео/training-v2/peanut-light/front-shoulder-right.mp4",
+      "image": "видео/training-v2/peanut-light/front-shoulder-right.jpg",
       "side": "left",
       "pair": "peanut-light-front-shoulder"
     },
@@ -735,8 +736,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "light",
-      "video": "видео/training-v2/peanut-light/front-shoulder-right.mp4",
-      "image": "видео/training-v2/peanut-light/front-shoulder-right.jpg",
+      "video": "видео/training-v2/peanut-light/front-shoulder-left.mp4",
+      "image": "видео/training-v2/peanut-light/front-shoulder-left.jpg",
       "side": "right",
       "pair": "peanut-light-front-shoulder"
     },
@@ -770,8 +771,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "intense",
-      "video": "видео/training-v2/peanut-intense/glute-press-right.mp4",
-      "image": "видео/training-v2/peanut-intense/glute-press-right.jpg",
+      "video": "видео/training-v2/peanut-intense/glute-press-left.mp4",
+      "image": "видео/training-v2/peanut-intense/glute-press-left.jpg",
       "side": "right",
       "pair": "peanut-intense-glute-press"
     },
@@ -783,8 +784,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "intense",
-      "video": "видео/training-v2/peanut-intense/glute-press-left.mp4",
-      "image": "видео/training-v2/peanut-intense/glute-press-left.jpg",
+      "video": "видео/training-v2/peanut-intense/glute-press-right.mp4",
+      "image": "видео/training-v2/peanut-intense/glute-press-right.jpg",
       "side": "left",
       "pair": "peanut-intense-glute-press"
     },
@@ -796,8 +797,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "intense",
-      "video": "видео/training-v2/peanut-light/foot-right.mp4",
-      "image": "видео/training-v2/peanut-light/foot-right.jpg",
+      "video": "видео/training-v2/peanut-light/foot-left.mp4",
+      "image": "видео/training-v2/peanut-light/foot-left.jpg",
       "side": "right",
       "pair": "peanut-intense-foot"
     },
@@ -809,8 +810,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "intense",
-      "video": "видео/training-v2/peanut-light/foot-left.mp4",
-      "image": "видео/training-v2/peanut-light/foot-left.jpg",
+      "video": "видео/training-v2/peanut-light/foot-right.mp4",
+      "image": "видео/training-v2/peanut-light/foot-right.jpg",
       "side": "left",
       "pair": "peanut-intense-foot"
     },
@@ -822,8 +823,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "intense",
-      "video": "видео/training-v2/peanut-intense/front-thigh-left.mp4",
-      "image": "видео/training-v2/peanut-intense/front-thigh-left.jpg",
+      "video": "видео/training-v2/peanut-intense/front-thigh-right.mp4",
+      "image": "видео/training-v2/peanut-intense/front-thigh-right.jpg",
       "side": "left",
       "pair": "peanut-intense-front-thigh"
     },
@@ -835,8 +836,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "intense",
-      "video": "видео/training-v2/peanut-intense/front-thigh-right.mp4",
-      "image": "видео/training-v2/peanut-intense/front-thigh-right.jpg",
+      "video": "видео/training-v2/peanut-intense/front-thigh-left.mp4",
+      "image": "видео/training-v2/peanut-intense/front-thigh-left.jpg",
       "side": "right",
       "pair": "peanut-intense-front-thigh"
     },
@@ -848,8 +849,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "intense",
-      "video": "видео/training-v2/peanut-intense/glute-deep-left.mp4",
-      "image": "видео/training-v2/peanut-intense/glute-deep-left.jpg",
+      "video": "видео/training-v2/peanut-intense/glute-deep-right.mp4",
+      "image": "видео/training-v2/peanut-intense/glute-deep-right.jpg",
       "side": "left",
       "pair": "peanut-intense-glute-deep"
     },
@@ -861,8 +862,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "intense",
-      "video": "видео/training-v2/peanut-intense/glute-deep-right.mp4",
-      "image": "видео/training-v2/peanut-intense/glute-deep-right.jpg",
+      "video": "видео/training-v2/peanut-intense/glute-deep-left.mp4",
+      "image": "видео/training-v2/peanut-intense/glute-deep-left.jpg",
       "side": "right",
       "pair": "peanut-intense-glute-deep"
     },
@@ -874,8 +875,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "intense",
-      "video": "видео/training-v2/peanut-light/inner-thigh-left.mp4",
-      "image": "видео/training-v2/peanut-light/inner-thigh-left.jpg",
+      "video": "видео/training-v2/peanut-light/inner-thigh-right.mp4",
+      "image": "видео/training-v2/peanut-light/inner-thigh-right.jpg",
       "side": "left",
       "pair": "peanut-intense-inner-thigh"
     },
@@ -887,8 +888,8 @@
       "bilateral": false,
       "tool": "peanut",
       "level": "intense",
-      "video": "видео/training-v2/peanut-light/inner-thigh-right.mp4",
-      "image": "видео/training-v2/peanut-light/inner-thigh-right.jpg",
+      "video": "видео/training-v2/peanut-light/inner-thigh-left.mp4",
+      "image": "видео/training-v2/peanut-light/inner-thigh-left.jpg",
       "side": "right",
       "pair": "peanut-intense-inner-thigh"
     },
@@ -965,7 +966,7 @@
       "source": ""
     }
   ],
-  "version": 5,
+  "version": 6,
   "banks": {
     "ball4-light": [
       "ball4-light-chin",
