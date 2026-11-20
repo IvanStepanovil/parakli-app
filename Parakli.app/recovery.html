@@ -409,7 +409,18 @@
   var TOOL_IMAGES = {
     ball4: 'Фото/4 см1.webp', ball6: 'Фото/6см1.webp', peanut: 'Фото/Арахис1.webp'
   };
-  var REST_IMAGE = '';         // фото на экране отдыха, например 'Фото/Отдых.png'
+  // Фото на экране отдыха: на каждом отдыхе случайно выбирается одно из списка (можно добавлять ещё)
+  var REST_IMAGES = ['Фото/Отдых-1.webp', 'Фото/Отдых-2.webp'];
+  REST_IMAGES.forEach(function (src) { var i = new Image(); i.src = encodeURI(src); });   // подгружаем заранее
+  // Картинка для текущего отдыха: выбирается один раз на каждый отдых и не меняется при паузе / повторной отрисовке
+  function restImage() {
+    if (!REST_IMAGES.length) return '';
+    if (S.restPicFor !== S.idx || REST_IMAGES.indexOf(S.restPic) < 0) {
+      S.restPicFor = S.idx;
+      S.restPic = REST_IMAGES[Math.floor(Math.random() * REST_IMAGES.length)];
+    }
+    return S.restPic;
+  }
   var COMPLETION_IMAGE = 'тренировки база/Завершение.webp';   // фон карточки «Ты молодец!», например 'Фото/Завершение.png'
 
   var ZONES = [
@@ -1092,7 +1103,7 @@
       $('wside').hidden = true; $('wvariantWrap').hidden = true;
       $('wtext').textContent = 'Расслабьтесь и спокойно подышите.';
       $('wnext').textContent = 'Далее: ' + S.list[S.idx + 1].name;
-      setImg(photo, REST_IMAGE);
+      setImg(photo, restImage());
       // Пока отдыхаем, тихо подгружаем видео следующего упражнения, чтобы оно стартовало без задержки
       var nx = S.list[S.idx + 1];
       var nextMedia = ParakliWorkoutMedia.select(nx, 0, 0, EXERCISE_SEC);
