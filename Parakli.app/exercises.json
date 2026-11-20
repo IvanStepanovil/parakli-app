@@ -2,7 +2,7 @@
   "_инструкция": [
     "Единая база энциклопедии и тренировок. Каждый элемент exercises — упражнение, а не отдельная сторона тела.",
     "Программы (programs): 10 упражнений по порядку, короткая тренировка — первые 5. Для мяча 4 см доступен только лёгкий режим.",
-    "Банки заданий (banks): тренировка собирается случайно при каждом запуске — короткая из 5 упражнений, длинная из 10. Упражнения с одинаковым pair (правая и левая сторона) попадают в тренировку только вместе и идут подряд, в порядке из банка. Если для массажёра и режима есть банк, programs для него не используется. Сейчас банк — у мяча 4 см (лёгкий).",
+    "Банки заданий (banks): тренировка собирается случайно при каждом запуске — короткая из 5 упражнений, длинная из 10. Упражнения с одинаковым pair (правая и левая сторона) попадают в тренировку только вместе и идут подряд, в порядке из банка. Если для массажёра и режима есть банк, programs для него не используется. Сейчас банки — у мяча 4 см (лёгкий) и «Арахиса» (лёгкий).",
     "pair — метка связки сторон. У таких упражнений bilateral=false и side=left/right: все 50 секунд — на указанную сторону.",
     "video: пустая строка означает, что видео пока нет; показывается image. Не создавайте пустые mp4.",
     "bilateral: true — обе стороны выполняются внутри одного этапа: 25 секунд на первую и 25 на другую.",
@@ -490,140 +490,6 @@
       "image": "Фото/6см1.webp"
     },
     {
-      "name": "Шея у стены",
-      "zone": "neck",
-      "text": "Встаньте спиной к стене и расположите массажёр за шеей: выступы по обе стороны от позвоночника, выемка по центру. Сохраняйте голову прямо и выполняйте небольшие движения, слегка сгибая колени. Давление должно быть минимальным; не прокатывайте переднюю и боковые части шеи.",
-      "bilateral": false,
-      "id": "peanut-light-1",
-      "tool": "peanut",
-      "level": "light",
-      "video": "видео/training-v2/peanut/neck-wall.mp4",
-      "image": "видео/training-v2/peanut/neck-wall.jpg"
-    },
-    {
-      "name": "Верх спины у стены",
-      "zone": "back",
-      "text": "Встаньте спиной к стене и расположите массажёр поперёк верхней части спины. Выемку направьте вдоль позвоночника, чтобы выступы опирались на мышцы по его сторонам. Медленно сгибайте и разгибайте колени, перемещаясь на несколько сантиметров.",
-      "bilateral": false,
-      "id": "peanut-light-2",
-      "tool": "peanut",
-      "level": "light",
-      "video": "видео/training-v2/peanut/upper-back-wall-light.mp4",
-      "image": "видео/training-v2/peanut/upper-back-wall-light.jpg"
-    },
-    {
-      "name": "Средняя часть спины у стены",
-      "zone": "back",
-      "text": "Поместите массажёр между стеной и мышцами средней части спины, оставив позвоночник в выемке. Слегка согните колени и плавно двигайтесь вверх-вниз на небольшом участке. Не давите на позвонки и рёбра.",
-      "bilateral": false,
-      "id": "peanut-light-3",
-      "tool": "peanut",
-      "level": "light",
-      "video": "видео/training-v2/peanut/mid-back-wall.mp4",
-      "image": "видео/training-v2/peanut/mid-back-wall.jpg"
-    },
-    {
-      "name": "Ягодицы",
-      "zone": "thighs",
-      "text": "Сядьте на коврик и поместите массажёр под мышечную часть одной ягодицы. Согните ноги и обопритесь руками на пол. Небольшими движениями таза мягко прокатывайте мышцы, регулируя давление опорой на руки и стопы.",
-      "bilateral": true,
-      "id": "peanut-light-4",
-      "tool": "peanut",
-      "level": "light",
-      "video": "видео/training-v2/peanut/glutes-side-1.mp4",
-      "image": "видео/training-v2/peanut/glutes-side-1.jpg",
-      "sideVideos": [
-        {
-          "video": "видео/training-v2/peanut/glutes-side-1.mp4",
-          "image": "видео/training-v2/peanut/glutes-side-1.jpg"
-        },
-        {
-          "video": "видео/training-v2/peanut/glutes-side-2.mp4",
-          "image": "видео/training-v2/peanut/glutes-side-2.jpg"
-        }
-      ]
-    },
-    {
-      "name": "Задняя поверхность бедра",
-      "zone": "thighs",
-      "text": "Сядьте на коврик и положите массажёр под мышечную часть задней поверхности бедра. Обопритесь руками на пол и медленно перемещайте ногу вперёд-назад на небольшом участке. Не прокатывайте область под коленом.",
-      "bilateral": true,
-      "id": "peanut-light-5",
-      "tool": "peanut",
-      "level": "light",
-      "video": "видео/training-v2/peanut/hamstrings.mp4",
-      "image": "видео/training-v2/peanut/hamstrings.jpg"
-    },
-    {
-      "name": "Икра",
-      "zone": "calves",
-      "text": "Сядьте на коврик, положите массажёр под мышечную часть одной икры, а другую ногу согните и поставьте стопой на пол. Опираясь на руки, плавно перемещайте голень вперёд-назад. Не давите на колено и ахиллово сухожилие.",
-      "bilateral": true,
-      "id": "peanut-light-6",
-      "tool": "peanut",
-      "level": "light",
-      "video": "видео/training-v2/peanut/calf-light.mp4",
-      "image": "видео/training-v2/peanut/calf-light.jpg"
-    },
-    {
-      "name": "Стопы",
-      "zone": "feet",
-      "text": "Встаньте и положите массажёр на пол. Для равновесия держитесь за стену или спинку устойчивого стула. Поставьте одну стопу на массажёр и медленно перекатывайте её от подушечки к пятке. Давление регулируйте опорой на вторую ногу.",
-      "bilateral": true,
-      "id": "peanut-light-7",
-      "tool": "peanut",
-      "level": "light",
-      "video": "видео/training-v2/peanut/feet.mp4",
-      "image": "видео/training-v2/peanut/feet.jpg"
-    },
-    {
-      "name": "Основание шеи лёжа",
-      "zone": "neck",
-      "text": "Лягте на спину и поместите массажёр под мышцы у основания затылка так, чтобы позвоночник оставался в выемке. Расслабьте плечи и делайте совсем небольшие повороты головы. Не усиливайте давление руками и остановитесь при неприятных ощущениях.",
-      "bilateral": false,
-      "id": "peanut-light-8",
-      "tool": "peanut",
-      "level": "light",
-      "video": "видео/training-v2/peanut/neck-floor.mp4",
-      "image": "видео/training-v2/peanut/neck-floor.jpg"
-    },
-    {
-      "name": "Задняя поверхность плеча",
-      "zone": "arms",
-      "text": "Поднимите согнутую руку и другой рукой мягко прокатывайте массажёр по мышечной части задней поверхности плеча. Работайте короткими движениями, не надавливая на локоть и подмышечную область.",
-      "bilateral": true,
-      "id": "peanut-light-9",
-      "tool": "peanut",
-      "level": "light",
-      "video": "видео/training-v2/peanut/triceps-hand.mp4",
-      "image": "видео/training-v2/peanut/triceps-hand.jpg",
-      "variants": [
-        {
-          "name": "Рукой",
-          "video": "видео/training-v2/peanut/triceps-hand.mp4",
-          "image": "видео/training-v2/peanut/triceps-hand.jpg",
-          "text": "Поднимите согнутую руку и другой рукой мягко прокатывайте массажёр по мышечной части задней поверхности плеча. Работайте короткими движениями, не надавливая на локоть и подмышечную область."
-        },
-        {
-          "name": "У стены",
-          "text": "Встаньте боком к стене и поместите массажёр между стеной и мышечной частью задней поверхности плеча. Расслабьте руку и небольшими движениями корпуса мягко прокатывайте мышцу. Не давите на локоть, плечевой сустав и область подмышки.",
-          "video": "видео/training-v2/peanut/triceps-wall.mp4",
-          "image": "видео/training-v2/peanut/triceps-wall.jpg"
-        }
-      ]
-    },
-    {
-      "name": "Грудные мышцы",
-      "zone": "arms",
-      "text": "Сядьте или встаньте удобно. Рукой мягко прокатывайте массажёр по мышцам верхней части груди ниже ключицы. Двигайтесь на небольшом участке, обходя грудину, ключицу и подмышечную область.",
-      "bilateral": true,
-      "id": "peanut-light-10",
-      "tool": "peanut",
-      "level": "light",
-      "video": "видео/training-v2/peanut/chest.mp4",
-      "image": "видео/training-v2/peanut/chest.jpg"
-    },
-    {
       "name": "Спина у стены",
       "zone": "back",
       "text": "Встаньте спиной к стене и поместите массажёр на мышечную часть спины, оставив позвоночник в выемке. Слегка согните колени и медленно двигайтесь вверх-вниз. Регулируйте давление положением ног; не прокатывайте позвонки и костные выступы.",
@@ -740,6 +606,258 @@
       "image": "видео/training-v2/peanut/feet.jpg",
       "side": "right",
       "splitFrom": "peanut-intense-8"
+    },
+    {
+      "id": "peanut-light-neck-base",
+      "name": "Переход шеи в спину",
+      "zone": "neck",
+      "text": "Мягко надавливайте массажёром на область перехода шеи в верхнюю часть спины, удерживая комфортное давление без прокатывания.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/neck-base.mp4",
+      "image": "видео/training-v2/peanut-light/neck-base.jpg"
+    },
+    {
+      "id": "peanut-light-upper-back",
+      "name": "Верх спины между лопатками",
+      "zone": "back",
+      "text": "Медленно прокатывайте массажёр вверх и вниз по верхней части спины между лопатками, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/upper-back.mp4",
+      "image": "видео/training-v2/peanut-light/upper-back.jpg"
+    },
+    {
+      "id": "peanut-light-mid-back",
+      "name": "Середина спины",
+      "zone": "back",
+      "text": "Медленно прокатывайте массажёр вверх и вниз по средней части спины, по обе стороны от позвоночника, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/mid-back.mp4",
+      "image": "видео/training-v2/peanut-light/mid-back.jpg"
+    },
+    {
+      "id": "peanut-light-glute-left",
+      "name": "Ягодица — левая",
+      "zone": "thighs",
+      "text": "Медленно прокатывайте массажёр под левой ягодицей, выполняя небольшие движения вперёд и назад, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/glute-left.mp4",
+      "image": "видео/training-v2/peanut-light/glute-left.jpg",
+      "side": "left",
+      "pair": "peanut-light-glute"
+    },
+    {
+      "id": "peanut-light-glute-right",
+      "name": "Ягодица — правая",
+      "zone": "thighs",
+      "text": "Медленно прокатывайте массажёр под правой ягодицей, выполняя небольшие движения вперёд и назад, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/glute-right.mp4",
+      "image": "видео/training-v2/peanut-light/glute-right.jpg",
+      "side": "right",
+      "pair": "peanut-light-glute"
+    },
+    {
+      "id": "peanut-light-glute-point-left",
+      "name": "Точка на ягодице — левая",
+      "zone": "thighs",
+      "text": "Мягко надавливайте массажёром на точку в нижней части левой ягодицы, сохраняя комфортное давление без прокатывания.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/glute-point-left.mp4",
+      "image": "видео/training-v2/peanut-light/glute-point-left.jpg",
+      "side": "left",
+      "pair": "peanut-light-glute-point"
+    },
+    {
+      "id": "peanut-light-glute-point-right",
+      "name": "Точка на ягодице — правая",
+      "zone": "thighs",
+      "text": "Мягко надавливайте массажёром на точку в нижней части правой ягодицы, сохраняя комфортное давление без прокатывания.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/glute-point-right.mp4",
+      "image": "видео/training-v2/peanut-light/glute-point-right.jpg",
+      "side": "right",
+      "pair": "peanut-light-glute-point"
+    },
+    {
+      "id": "peanut-light-calf-right",
+      "name": "Икра — правая",
+      "zone": "calves",
+      "text": "Медленно прокатывайте массажёр под правой икрой вперёд и назад, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/calf-right.mp4",
+      "image": "видео/training-v2/peanut-light/calf-right.jpg",
+      "side": "right",
+      "pair": "peanut-light-calf"
+    },
+    {
+      "id": "peanut-light-calf-left",
+      "name": "Икра — левая",
+      "zone": "calves",
+      "text": "Медленно прокатывайте массажёр под левой икрой вперёд и назад, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/calf-left.mp4",
+      "image": "видео/training-v2/peanut-light/calf-left.jpg",
+      "side": "left",
+      "pair": "peanut-light-calf"
+    },
+    {
+      "id": "peanut-light-foot-right",
+      "name": "Свод стопы — правая",
+      "zone": "feet",
+      "text": "Медленно прокатывайте массажёр под сводом правой стопы вперёд и назад, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/foot-right.mp4",
+      "image": "видео/training-v2/peanut-light/foot-right.jpg",
+      "side": "right",
+      "pair": "peanut-light-foot"
+    },
+    {
+      "id": "peanut-light-foot-left",
+      "name": "Свод стопы — левая",
+      "zone": "feet",
+      "text": "Медленно прокатывайте массажёр под сводом левой стопы вперёд и назад, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/foot-left.mp4",
+      "image": "видео/training-v2/peanut-light/foot-left.jpg",
+      "side": "left",
+      "pair": "peanut-light-foot"
+    },
+    {
+      "id": "peanut-light-inner-thigh-left",
+      "name": "Внутренняя поверхность бедра — левая",
+      "zone": "thighs",
+      "text": "Медленно прокатывайте массажёр по внутренней поверхности левого бедра от паховой области к колену и обратно, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/inner-thigh-left.mp4",
+      "image": "видео/training-v2/peanut-light/inner-thigh-left.jpg",
+      "side": "left",
+      "pair": "peanut-light-inner-thigh"
+    },
+    {
+      "id": "peanut-light-inner-thigh-right",
+      "name": "Внутренняя поверхность бедра — правая",
+      "zone": "thighs",
+      "text": "Медленно прокатывайте массажёр по внутренней поверхности правого бедра от паховой области к колену и обратно, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/inner-thigh-right.mp4",
+      "image": "видео/training-v2/peanut-light/inner-thigh-right.jpg",
+      "side": "right",
+      "pair": "peanut-light-inner-thigh"
+    },
+    {
+      "id": "peanut-light-skull-base",
+      "name": "Основание черепа",
+      "zone": "neck",
+      "text": "Медленно прокатывайте массажёр под основанием черепа по верхней части шеи, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/skull-base.mp4",
+      "image": "видео/training-v2/peanut-light/skull-base.jpg"
+    },
+    {
+      "id": "peanut-light-triceps-left",
+      "name": "Трицепс — левая",
+      "zone": "arms",
+      "text": "Медленно прокатывайте массажёр по трицепсу левой руки, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/triceps-left.mp4",
+      "image": "видео/training-v2/peanut-light/triceps-left.jpg",
+      "side": "left",
+      "pair": "peanut-light-triceps"
+    },
+    {
+      "id": "peanut-light-triceps-right",
+      "name": "Трицепс — правая",
+      "zone": "arms",
+      "text": "Медленно прокатывайте массажёр по трицепсу правой руки, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/triceps-right.mp4",
+      "image": "видео/training-v2/peanut-light/triceps-right.jpg",
+      "side": "right",
+      "pair": "peanut-light-triceps"
+    },
+    {
+      "id": "peanut-light-deltoid-left",
+      "name": "Дельтовидная мышца — левая",
+      "zone": "arms",
+      "text": "Медленно прокатывайте массажёр по наружной поверхности левого плеча в области дельтовидной мышцы, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/deltoid-left.mp4",
+      "image": "видео/training-v2/peanut-light/deltoid-left.jpg",
+      "side": "left",
+      "pair": "peanut-light-deltoid"
+    },
+    {
+      "id": "peanut-light-deltoid-right",
+      "name": "Дельтовидная мышца — правая",
+      "zone": "arms",
+      "text": "Медленно прокатывайте массажёр по наружной поверхности правого плеча в области дельтовидной мышцы, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/deltoid-right.mp4",
+      "image": "видео/training-v2/peanut-light/deltoid-right.jpg",
+      "side": "right",
+      "pair": "peanut-light-deltoid"
+    },
+    {
+      "id": "peanut-light-front-shoulder-left",
+      "name": "Передняя поверхность плеча — левая",
+      "zone": "arms",
+      "text": "Медленно прокатывайте массажёр по передней поверхности левого плеча, ближе к груди, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/front-shoulder-left.mp4",
+      "image": "видео/training-v2/peanut-light/front-shoulder-left.jpg",
+      "side": "left",
+      "pair": "peanut-light-front-shoulder"
+    },
+    {
+      "id": "peanut-light-front-shoulder-right",
+      "name": "Передняя поверхность плеча — правая",
+      "zone": "arms",
+      "text": "Медленно прокатывайте массажёр по передней поверхности правого плеча, ближе к груди, сохраняя комфортное давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "light",
+      "video": "видео/training-v2/peanut-light/front-shoulder-right.mp4",
+      "image": "видео/training-v2/peanut-light/front-shoulder-right.jpg",
+      "side": "right",
+      "pair": "peanut-light-front-shoulder"
     }
   ],
   "programs": {
@@ -766,18 +884,6 @@
       "ball6-intense-8",
       "ball6-intense-9",
       "ball6-intense-10"
-    ],
-    "peanut-light": [
-      "peanut-light-1",
-      "peanut-light-2",
-      "peanut-light-3",
-      "peanut-light-4",
-      "peanut-light-5",
-      "peanut-light-6",
-      "peanut-light-7",
-      "peanut-light-8",
-      "peanut-light-9",
-      "peanut-light-10"
     ],
     "peanut-intense": [
       "peanut-intense-1",
@@ -827,7 +933,7 @@
       "source": ""
     }
   ],
-  "version": 3,
+  "version": 4,
   "banks": {
     "ball4-light": [
       "ball4-light-chin",
@@ -850,6 +956,28 @@
       "ball4-light-shoulder-right",
       "ball4-light-collarbone-left",
       "ball4-light-collarbone-right"
+    ],
+    "peanut-light": [
+      "peanut-light-neck-base",
+      "peanut-light-upper-back",
+      "peanut-light-mid-back",
+      "peanut-light-glute-left",
+      "peanut-light-glute-right",
+      "peanut-light-glute-point-left",
+      "peanut-light-glute-point-right",
+      "peanut-light-calf-right",
+      "peanut-light-calf-left",
+      "peanut-light-foot-right",
+      "peanut-light-foot-left",
+      "peanut-light-inner-thigh-left",
+      "peanut-light-inner-thigh-right",
+      "peanut-light-skull-base",
+      "peanut-light-triceps-left",
+      "peanut-light-triceps-right",
+      "peanut-light-deltoid-left",
+      "peanut-light-deltoid-right",
+      "peanut-light-front-shoulder-left",
+      "peanut-light-front-shoulder-right"
     ]
   }
 }
