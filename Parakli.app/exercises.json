@@ -2,15 +2,14 @@
   "_инструкция": [
     "Единая база энциклопедии и тренировок. Каждый элемент exercises — упражнение, а не отдельная сторона тела.",
     "Программы (programs): 10 упражнений по порядку, короткая тренировка — первые 5. Для мяча 4 см доступен только лёгкий режим.",
-    "Банки заданий (banks): тренировка собирается случайно при каждом запуске — короткая из 5 упражнений, длинная из 10. Упражнения с одинаковым pair (правая и левая сторона) попадают в тренировку только вместе и идут подряд, в порядке из банка. Если для массажёра и режима есть банк, programs для него не используется. Сейчас банки — у мяча 4 см (лёгкий) и «Арахиса» (лёгкий).",
+    "Банки заданий (banks): тренировка собирается случайно при каждом запуске — короткая из 5 упражнений, длинная из 10. Упражнения с одинаковым pair (правая и левая сторона) попадают в тренировку только вместе и идут подряд, в порядке из банка. Если для массажёра и режима есть банк, programs для него не используется. Сейчас банки — у мяча 4 см (лёгкий) и «Арахиса» (лёгкий и интенсивный).",
     "pair — метка связки сторон. У таких упражнений bilateral=false и side=left/right: все 50 секунд — на указанную сторону.",
     "video: пустая строка означает, что видео пока нет; показывается image. Не создавайте пустые mp4.",
     "bilateral: true — обе стороны выполняются внутри одного этапа: 25 секунд на первую и 25 на другую.",
     "sideVideos: демонстрации двух сторон одного упражнения. При отсутствии второй записи используется та же демонстрация с подсказкой о смене стороны.",
     "variants: разные положения для одного упражнения; каждый вариант содержит name/text/video/image. Выбор варианта не создаёт новое упражнение.",
     "Отсутствующие видео и исходные соответствия перечислены в КАТАЛОГ_ВИДЕО.json рядом с приложением.",
-    "Музыка хранится в music; существующие авторы/лицензии/source сохраняются.",
-    "В интенсивной программе «Арахиса» икра и стопа разделены на отдельные упражнения слева/справа. У таких записей bilateral=false, side=left/right: все 50 секунд отводятся указанной стороне, автоматической смены на 25-й секунде нет."
+    "Музыка хранится в music; существующие авторы/лицензии/source сохраняются."
   ],
   "exercises": [
     {
@@ -490,124 +489,6 @@
       "image": "Фото/6см1.webp"
     },
     {
-      "name": "Спина у стены",
-      "zone": "back",
-      "text": "Встаньте спиной к стене и поместите массажёр на мышечную часть спины, оставив позвоночник в выемке. Слегка согните колени и медленно двигайтесь вверх-вниз. Регулируйте давление положением ног; не прокатывайте позвонки и костные выступы.",
-      "bilateral": false,
-      "id": "peanut-intense-1",
-      "tool": "peanut",
-      "level": "intense",
-      "video": "видео/training-v2/peanut/back-wall-intense.mp4",
-      "image": "видео/training-v2/peanut/back-wall-intense.jpg"
-    },
-    {
-      "name": "Верх спины у стены",
-      "zone": "back",
-      "text": "Расположите массажёр поперёк верхней части спины между телом и стеной: выступы по сторонам позвоночника, выемка по центру. Медленно сгибайте и разгибайте колени. Движения должны оставаться плавными, а давление комфортным.",
-      "bilateral": false,
-      "id": "peanut-intense-2",
-      "tool": "peanut",
-      "level": "intense",
-      "video": "видео/training-v2/peanut/upper-back-wall-intense.mp4",
-      "image": "видео/training-v2/peanut/upper-back-wall-intense.jpg"
-    },
-    {
-      "name": "Грудной отдел спины лёжа",
-      "zone": "back",
-      "text": "Лягте на спину и расположите массажёр поперёк мышц грудного отдела спины, оставив позвоночник в выемке. Согните колени и поставьте стопы на пол. Небольшими движениями корпуса мягко прокатывайте мышцы; не запрокидывайте голову и не давите на позвонки.",
-      "bilateral": false,
-      "id": "peanut-intense-3",
-      "tool": "peanut",
-      "level": "intense",
-      "video": "видео/training-v2/peanut/back-floor.mp4",
-      "image": "видео/training-v2/peanut/back-floor.jpg"
-    },
-    {
-      "name": "Ягодицы",
-      "zone": "thighs",
-      "text": "Сядьте на массажёр, расположив его под мышечной частью одной ягодицы. Обопритесь руками и стопами на пол и плавно перемещайте таз на небольшом участке. Регулируйте нагрузку опорой, избегая давления на тазовые кости.",
-      "bilateral": true,
-      "id": "peanut-intense-4",
-      "tool": "peanut",
-      "level": "intense",
-      "video": "видео/training-v2/peanut/glutes-intense.mp4",
-      "image": "видео/training-v2/peanut/glutes-intense.jpg"
-    },
-    {
-      "name": "Задняя поверхность бедра",
-      "zone": "thighs",
-      "text": "Сядьте на коврик и поместите массажёр под мышечную часть задней поверхности бедра. Обопритесь руками и плавно перемещайте корпус вперёд-назад. Не прокатывайте область под коленом; давление должно оставаться комфортным.",
-      "bilateral": true,
-      "id": "peanut-intense-5",
-      "tool": "peanut",
-      "level": "intense",
-      "video": "видео/training-v2/peanut/hamstrings.mp4",
-      "image": "видео/training-v2/peanut/hamstrings.jpg"
-    },
-    {
-      "name": "Наружная поверхность бедра",
-      "zone": "thighs",
-      "text": "Расположитесь на боку и поместите массажёр под наружную мышечную часть бедра. Обопритесь на предплечье и свободную ногу, чтобы регулировать давление. Небольшими движениями корпуса прокатывайте короткий участок, обходя тазовую кость и колено.",
-      "bilateral": true,
-      "id": "peanut-intense-6",
-      "tool": "peanut",
-      "level": "intense",
-      "video": "видео/training-v2/peanut/outer-thigh.mp4",
-      "image": "видео/training-v2/peanut/outer-thigh.jpg"
-    },
-    {
-      "name": "Икра — левая",
-      "zone": "calves",
-      "text": "Сядьте на коврик и поместите массажёр под мышечную часть левой икры. Обопритесь руками и правой ногой, затем плавно перемещайте голень вперёд-назад. Всё упражнение выполняйте на этой стороне. Не надавливайте на подколенную область и ахиллово сухожилие.",
-      "bilateral": false,
-      "id": "peanut-intense-calf-left",
-      "tool": "peanut",
-      "level": "intense",
-      "video": "видео/training-v2/peanut/calf-intense.mp4",
-      "image": "видео/training-v2/peanut/calf-intense.jpg",
-      "side": "left",
-      "splitFrom": "peanut-intense-7"
-    },
-    {
-      "name": "Икра — правая",
-      "zone": "calves",
-      "text": "Сядьте на коврик и поместите массажёр под мышечную часть правой икры. Обопритесь руками и левой ногой, затем плавно перемещайте голень вперёд-назад. Всё упражнение выполняйте на этой стороне. Не надавливайте на подколенную область и ахиллово сухожилие.",
-      "bilateral": false,
-      "id": "peanut-intense-calf-right",
-      "tool": "peanut",
-      "level": "intense",
-      "video": "видео/training-v2/peanut/calf-intense.mp4",
-      "image": "видео/training-v2/peanut/calf-intense.jpg",
-      "side": "right",
-      "splitFrom": "peanut-intense-7"
-    },
-    {
-      "name": "Стопа — левая",
-      "zone": "feet",
-      "text": "Встаньте рядом с устойчивой опорой и поставьте левую стопу на массажёр. Медленно прокатывайте подошву от подушечки к пятке и обратно. Всё упражнение выполняйте этой стопой. Регулируйте давление переносом веса на правую ногу и не работайте через боль.",
-      "bilateral": false,
-      "id": "peanut-intense-feet-left",
-      "tool": "peanut",
-      "level": "intense",
-      "video": "видео/training-v2/peanut/feet.mp4",
-      "image": "видео/training-v2/peanut/feet.jpg",
-      "side": "left",
-      "splitFrom": "peanut-intense-8"
-    },
-    {
-      "name": "Стопа — правая",
-      "zone": "feet",
-      "text": "Встаньте рядом с устойчивой опорой и поставьте правую стопу на массажёр. Медленно прокатывайте подошву от подушечки к пятке и обратно. Всё упражнение выполняйте этой стопой. Регулируйте давление переносом веса на левую ногу и не работайте через боль.",
-      "bilateral": false,
-      "id": "peanut-intense-feet-right",
-      "tool": "peanut",
-      "level": "intense",
-      "video": "видео/training-v2/peanut/feet.mp4",
-      "image": "видео/training-v2/peanut/feet.jpg",
-      "side": "right",
-      "splitFrom": "peanut-intense-8"
-    },
-    {
       "id": "peanut-light-neck-base",
       "name": "Переход шеи в спину",
       "zone": "neck",
@@ -858,6 +739,169 @@
       "image": "видео/training-v2/peanut-light/front-shoulder-right.jpg",
       "side": "right",
       "pair": "peanut-light-front-shoulder"
+    },
+    {
+      "id": "peanut-intense-neck-roll",
+      "name": "Задняя поверхность шеи",
+      "zone": "neck",
+      "text": "Медленно прокатывайте массажёр вверх и вниз по задней поверхности шеи, от основания черепа до верхней части спины, сохраняя контролируемое давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "intense",
+      "video": "видео/training-v2/peanut-intense/neck-roll.mp4",
+      "image": "видео/training-v2/peanut-intense/neck-roll.jpg"
+    },
+    {
+      "id": "peanut-intense-upper-back-knees",
+      "name": "Верх спины у стены",
+      "zone": "back",
+      "text": "Медленно прокатывайте массажёр вверх и вниз по верхней части спины, ниже основания шеи, плавно сгибая и выпрямляя колени, сохраняя контролируемое давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "intense",
+      "video": "видео/training-v2/peanut-intense/upper-back-knees.mp4",
+      "image": "видео/training-v2/peanut-intense/upper-back-knees.jpg"
+    },
+    {
+      "id": "peanut-intense-glute-press-right",
+      "name": "Давление ягодицей — правая",
+      "zone": "thighs",
+      "text": "Глубоко надавливайте на массажёр правой ягодицей, постепенно перенося на него вес тела и сохраняя контролируемое давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "intense",
+      "video": "видео/training-v2/peanut-intense/glute-press-right.mp4",
+      "image": "видео/training-v2/peanut-intense/glute-press-right.jpg",
+      "side": "right",
+      "pair": "peanut-intense-glute-press"
+    },
+    {
+      "id": "peanut-intense-glute-press-left",
+      "name": "Давление ягодицей — левая",
+      "zone": "thighs",
+      "text": "Глубоко надавливайте на массажёр левой ягодицей, постепенно перенося на него вес тела и сохраняя контролируемое давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "intense",
+      "video": "видео/training-v2/peanut-intense/glute-press-left.mp4",
+      "image": "видео/training-v2/peanut-intense/glute-press-left.jpg",
+      "side": "left",
+      "pair": "peanut-intense-glute-press"
+    },
+    {
+      "id": "peanut-intense-foot-right",
+      "name": "Свод стопы — правая",
+      "zone": "feet",
+      "text": "Медленно прокатывайте массажёр под сводом правой стопы вперёд и назад, перенося на него больше веса тела для глубокого, но контролируемого давления.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "intense",
+      "video": "видео/training-v2/peanut-light/foot-right.mp4",
+      "image": "видео/training-v2/peanut-light/foot-right.jpg",
+      "side": "right",
+      "pair": "peanut-intense-foot"
+    },
+    {
+      "id": "peanut-intense-foot-left",
+      "name": "Свод стопы — левая",
+      "zone": "feet",
+      "text": "Медленно прокатывайте массажёр под сводом левой стопы вперёд и назад, перенося на него больше веса тела для глубокого, но контролируемого давления.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "intense",
+      "video": "видео/training-v2/peanut-light/foot-left.mp4",
+      "image": "видео/training-v2/peanut-light/foot-left.jpg",
+      "side": "left",
+      "pair": "peanut-intense-foot"
+    },
+    {
+      "id": "peanut-intense-front-thigh-left",
+      "name": "Передняя поверхность бедра — левая",
+      "zone": "thighs",
+      "text": "Медленно прокатывайте массажёр по передней поверхности левого бедра выше колена, перенося на него вес тела для глубокого, контролируемого давления.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "intense",
+      "video": "видео/training-v2/peanut-intense/front-thigh-left.mp4",
+      "image": "видео/training-v2/peanut-intense/front-thigh-left.jpg",
+      "side": "left",
+      "pair": "peanut-intense-front-thigh"
+    },
+    {
+      "id": "peanut-intense-front-thigh-right",
+      "name": "Передняя поверхность бедра — правая",
+      "zone": "thighs",
+      "text": "Медленно прокатывайте массажёр по передней поверхности правого бедра выше колена, перенося на него вес тела для глубокого, контролируемого давления.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "intense",
+      "video": "видео/training-v2/peanut-intense/front-thigh-right.mp4",
+      "image": "видео/training-v2/peanut-intense/front-thigh-right.jpg",
+      "side": "right",
+      "pair": "peanut-intense-front-thigh"
+    },
+    {
+      "id": "peanut-intense-glute-deep-left",
+      "name": "Глубокое давление ягодицей — левая",
+      "zone": "thighs",
+      "text": "Глубоко надавливайте левой ягодицей на массажёр, перенося на него вес тела и сохраняя сильное, но контролируемое давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "intense",
+      "video": "видео/training-v2/peanut-intense/glute-deep-left.mp4",
+      "image": "видео/training-v2/peanut-intense/glute-deep-left.jpg",
+      "side": "left",
+      "pair": "peanut-intense-glute-deep"
+    },
+    {
+      "id": "peanut-intense-glute-deep-right",
+      "name": "Глубокое давление ягодицей — правая",
+      "zone": "thighs",
+      "text": "Глубоко надавливайте правой ягодицей на массажёр, перенося на него вес тела и сохраняя сильное, но контролируемое давление.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "intense",
+      "video": "видео/training-v2/peanut-intense/glute-deep-right.mp4",
+      "image": "видео/training-v2/peanut-intense/glute-deep-right.jpg",
+      "side": "right",
+      "pair": "peanut-intense-glute-deep"
+    },
+    {
+      "id": "peanut-intense-inner-thigh-left",
+      "name": "Внутренняя поверхность бедра — левая",
+      "zone": "thighs",
+      "text": "Медленно прокатывайте массажёр по внутренней поверхности левого бедра от паховой области к колену и обратно, перенося на него больше веса тела для глубокого, контролируемого давления.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "intense",
+      "video": "видео/training-v2/peanut-light/inner-thigh-left.mp4",
+      "image": "видео/training-v2/peanut-light/inner-thigh-left.jpg",
+      "side": "left",
+      "pair": "peanut-intense-inner-thigh"
+    },
+    {
+      "id": "peanut-intense-inner-thigh-right",
+      "name": "Внутренняя поверхность бедра — правая",
+      "zone": "thighs",
+      "text": "Медленно прокатывайте массажёр по внутренней поверхности правого бедра от паховой области к колену и обратно, перенося на него больше веса тела для глубокого, контролируемого давления.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "intense",
+      "video": "видео/training-v2/peanut-light/inner-thigh-right.mp4",
+      "image": "видео/training-v2/peanut-light/inner-thigh-right.jpg",
+      "side": "right",
+      "pair": "peanut-intense-inner-thigh"
+    },
+    {
+      "id": "peanut-intense-upper-back-floor",
+      "name": "Верх спины лёжа",
+      "zone": "back",
+      "text": "Медленно прокатывайте массажёр по верхней части спины, удерживая руки за головой и локти разведёнными. Используйте вес тела для глубокого, но контролируемого давления.",
+      "bilateral": false,
+      "tool": "peanut",
+      "level": "intense",
+      "video": "видео/training-v2/peanut-intense/upper-back-floor.mp4",
+      "image": "видео/training-v2/peanut-intense/upper-back-floor.jpg"
     }
   ],
   "programs": {
@@ -884,18 +928,6 @@
       "ball6-intense-8",
       "ball6-intense-9",
       "ball6-intense-10"
-    ],
-    "peanut-intense": [
-      "peanut-intense-1",
-      "peanut-intense-2",
-      "peanut-intense-3",
-      "peanut-intense-4",
-      "peanut-intense-5",
-      "peanut-intense-6",
-      "peanut-intense-calf-left",
-      "peanut-intense-calf-right",
-      "peanut-intense-feet-left",
-      "peanut-intense-feet-right"
     ]
   },
   "notice": "Важно: давление должно оставаться комфортным. Не прокатывайте массажёр по позвоночнику, суставам, передней поверхности шеи и участкам с травмами или воспалением. Если появились резкая боль, покалывание, онемение или головокружение, остановитесь. На шее особенно важно избегать давления на кости и позвоночник.",
@@ -933,7 +965,7 @@
       "source": ""
     }
   ],
-  "version": 4,
+  "version": 5,
   "banks": {
     "ball4-light": [
       "ball4-light-chin",
@@ -978,6 +1010,21 @@
       "peanut-light-deltoid-right",
       "peanut-light-front-shoulder-left",
       "peanut-light-front-shoulder-right"
+    ],
+    "peanut-intense": [
+      "peanut-intense-neck-roll",
+      "peanut-intense-upper-back-knees",
+      "peanut-intense-glute-press-right",
+      "peanut-intense-glute-press-left",
+      "peanut-intense-foot-right",
+      "peanut-intense-foot-left",
+      "peanut-intense-front-thigh-left",
+      "peanut-intense-front-thigh-right",
+      "peanut-intense-glute-deep-left",
+      "peanut-intense-glute-deep-right",
+      "peanut-intense-inner-thigh-left",
+      "peanut-intense-inner-thigh-right",
+      "peanut-intense-upper-back-floor"
     ]
   }
 }
