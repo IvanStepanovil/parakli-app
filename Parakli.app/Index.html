@@ -175,6 +175,19 @@
   .msg { min-height: 20px; margin: 12px 4px 0; font-size: 14px; color: var(--error); }
   body.loading .wrap { visibility: hidden; }
 
+  /* Экран загрузки — самый первый: показывается, пока сервер не ответил, есть ли у пользователя аккаунт */
+  .boot { position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: 22px; padding: 24px 32px calc(24px + env(safe-area-inset-bottom)); text-align: center; }
+  body:not(.loading) .boot { display: none; }
+  .boot img { width: 70%; max-width: 230px; height: auto; }
+  .boot .spin { width: 42px; height: 42px; border-radius: 50%; border: 3px solid rgba(150,104,58,.18); border-top-color: #96683a;
+                animation: bootspin .9s linear infinite; }
+  .boot p { margin: 0; max-width: 300px; font-size: 15px; line-height: 1.4; color: var(--muted); }
+  .boot .btn { width: auto; min-width: 200px; padding: 0 28px; margin-top: 0; }
+  .boot [hidden] { display: none !important; }
+  @keyframes bootspin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .boot .spin { animation-duration: 3s; } }
+
   /* Экраны: приветствие / регистрация / вход */
   .back { display: grid; place-items: center; width: 40px; height: 40px; margin: -6px 0 0 -8px; border: 0; background: none; cursor: pointer; }
   .back svg { width: 24px; height: 24px; stroke: var(--ink); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -213,6 +226,13 @@
 </head>
 <body class="loading">
  
+<div class="boot" id="boot" role="status" aria-live="polite">
+  <img src="Фото/Лого с текстом.webp" alt="Паракли">
+  <div class="spin" id="bootSpin" aria-hidden="true"></div>
+  <p id="bootText">Загружаем данные…</p>
+  <button type="button" class="btn" id="bootRetry" hidden>Повторить</button>
+</div>
+
 <main class="wrap">
 
 <!-- ===== Приветствие ===== -->
@@ -399,18 +419,30 @@
   function goMain() { location.replace(MAIN_PAGE + location.search); }
 
   /* ---------- Уже зарегистрирован? Тогда сразу на главный экран ---------- */
-  var shown = false;
-  function showForm() { if (shown) return; shown = true; document.body.classList.remove('loading'); }
-  setTimeout(showForm, 6000);
-
-  Parakli.getSession().then(function (r) {
-    if (r.ok && r.data.registered) { Parakli.markVerified(); goMain(); return; }
-    showForm();
-    if (r.status === 401) msg.textContent = $('loginMsg').textContent = 'Откройте приложение из Telegram: отправьте боту команду /start.';
-  }).catch(function () {
-    showForm();
-    msg.textContent = $('loginMsg').textContent = 'Нет связи с сервером. Попробуйте позже.';
-  });
+  // Пока сервер не ответил, показываем экран загрузки (а не «Регистрация / Войти» — это путало зарегистрированных).
+  // Экран входа появляется только когда сервер подтвердил, что аккаунта на этом Telegram нет.
+  var shown = false, slowTimer = null;
+  function showForm() { if (shown) return; shown = true; clearTimeout(slowTimer); document.body.classList.remove('loading'); }
+  function bootFail(text) {
+    clearTimeout(slowTimer);
+    $('bootSpin').hidden = true; $('bootText').textContent = text; $('bootRetry').hidden = false;
+  }
+  function boot() {
+    $('bootSpin').hidden = false; $('bootRetry').hidden = true; $('bootText').textContent = 'Загружаем данные…';
+    clearTimeout(slowTimer);
+    slowTimer = setTimeout(function () { $('bootText').textContent = 'Сервер просыпается, это может занять до минуты…'; }, 8000);
+    var timeout = new Promise(function (_, rej) { setTimeout(function () { rej(new Error('timeout')); }, 60000); });
+    Promise.race([Parakli.getSession(), timeout]).then(function (r) {
+      if (r.ok && r.data.registered) { Parakli.markVerified(); goMain(); return; }   // экран загрузки остаётся до перехода
+      if (r.status >= 500) { bootFail('Сервер временно недоступен. Попробуйте ещё раз через минуту.'); return; }
+      showForm();
+      if (r.status === 401) msg.textContent = $('loginMsg').textContent = 'Откройте приложение из Telegram: отправьте боту команду /start.';
+    }).catch(function () {
+      bootFail('Нет связи с сервером. Проверьте интернет и попробуйте ещё раз.');
+    });
+  }
+  $('bootRetry').addEventListener('click', boot);
+  boot();
 
   /* ---------- Переходы между экранами ---------- */
   var SCREENS = ['scrWelcome', 'scrRegister', 'scrLogin', 'scrReset'];
